@@ -55,7 +55,7 @@ public class zbar {
         };
     }
 
-    static final SymbolLookup SYMBOL_LOOKUP = SymbolLookup.libraryLookup(System.mapLibraryName("/usr/lib/x86_64-linux-gnu/libzbar.so"), LIBRARY_ARENA)
+    static final SymbolLookup SYMBOL_LOOKUP = SymbolLookup.libraryLookup(System.mapLibraryName("zbar"), LIBRARY_ARENA)
             .or(SymbolLookup.loaderLookup())
             .or(Linker.nativeLinker().defaultLookup());
 
