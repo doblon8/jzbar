@@ -2,6 +2,8 @@ package com.github.doblon8.jzbar;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.github.doblon8.jzbar.bindings.zbar.*;
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
@@ -39,6 +41,16 @@ public class Image implements AutoCloseable {
             return null;
         }
         return new Symbol(symbolSegment);
+    }
+
+    public List<Symbol> getSymbols() {
+        List<Symbol> symbols = new ArrayList<>();
+        Symbol symbol = getFirstSymbol();
+        while (symbol != null) {
+            symbols.add(symbol);
+            symbol = symbol.next();
+        }
+        return symbols;
     }
 
     private long fourccParse(String format) {
