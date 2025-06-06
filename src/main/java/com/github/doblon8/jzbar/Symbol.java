@@ -2,8 +2,7 @@ package com.github.doblon8.jzbar;
 
 import java.lang.foreign.MemorySegment;
 
-import static com.github.doblon8.jzbar.bindings.zbar.zbar_symbol_get_data;
-import static com.github.doblon8.jzbar.bindings.zbar.zbar_symbol_next;
+import static com.github.doblon8.jzbar.bindings.zbar.*;
 
 public class Symbol {
     private final MemorySegment segment;
@@ -18,6 +17,11 @@ public class Symbol {
             return null;
         }
         return dataSegment.getString(0);
+    }
+
+    public String getOrientation() {
+        int orientation = zbar_symbol_get_orientation(segment);
+        return zbar_get_orientation_name(orientation).getString(0);
     }
 
     public Symbol next() {
