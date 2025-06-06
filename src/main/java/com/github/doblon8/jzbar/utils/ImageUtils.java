@@ -1,10 +1,12 @@
 package com.github.doblon8.jzbar.utils;
 
+import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 
-public class Y800Converter {
-    public static byte[] toY800(BufferedImage image) {
+public class ImageUtils {
+    public static byte[] convertToY800(BufferedImage image) {
         if (image.getType() != BufferedImage.TYPE_BYTE_GRAY) {
             throw new IllegalArgumentException("Image must be of type TYPE_BYTE_GRAY");
         }
@@ -27,5 +29,20 @@ public class Y800Converter {
         }
 
         return y800Data;
+    }
+
+    public static BufferedImage rotateImage(BufferedImage image, double degrees) {
+        int width = image.getWidth();
+        int height = image.getHeight();
+        BufferedImage rotated = new BufferedImage(width, height, image.getType());
+        Graphics2D g2d = rotated.createGraphics();
+
+        double radians = Math.toRadians(degrees);
+        AffineTransform affineTransform = AffineTransform.getRotateInstance(radians, width / 2.0, height / 2.0);
+        g2d.setTransform(affineTransform);
+        g2d.drawImage(image, 0, 0, null);
+        g2d.dispose();
+
+        return rotated;
     }
 }
