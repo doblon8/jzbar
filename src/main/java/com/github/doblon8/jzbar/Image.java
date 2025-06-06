@@ -33,6 +33,14 @@ public class Image implements AutoCloseable {
         zbar_image_set_data(segment, dataSegment, data.length, MemorySegment.NULL);
     }
 
+    public Symbol getFirstSymbol() {
+        MemorySegment symbolSegment = zbar_image_first_symbol(segment);
+        if (symbolSegment.address() == 0) {
+            return null;
+        }
+        return new Symbol(symbolSegment);
+    }
+
     private long fourccParse(String format) {
         if (format.length() != 4) {
             throw new IllegalArgumentException("Format must be 4 characters");
