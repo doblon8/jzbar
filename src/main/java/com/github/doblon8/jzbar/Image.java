@@ -19,8 +19,9 @@ public class Image implements AutoCloseable {
         return segment;
     }
 
-    public void setFormat(long format) {
-        zbar_image_set_format(segment, format);
+    public void setFormat(String format) {
+        long fmt = fourccParse(format);
+        zbar_image_set_format(segment, fmt);
     }
 
     public void setSize(int width, int height) {
@@ -30,6 +31,17 @@ public class Image implements AutoCloseable {
     public void setData(byte[] data) {
         MemorySegment dataSegment = arena.allocateFrom(JAVA_BYTE, data);
         zbar_image_set_data(segment, dataSegment, data.length, MemorySegment.NULL);
+    }
+
+    private long fourccParse(String format) {
+        if (format.length() != 4) {
+            throw new IllegalArgumentException("Format must be 4 characters");
+        }
+        long fourcc = 0;
+        for (int i = 0; i < format.length(); i++) {
+            fourcc |= ((long) format.charAt(i) & 0xFF) << (i * 8);
+        }
+        return fourcc;
     }
 
     @Override
