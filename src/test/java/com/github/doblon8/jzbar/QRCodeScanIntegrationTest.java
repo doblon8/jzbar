@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 
 import java.awt.image.BufferedImage;
 
-import static com.github.doblon8.jzbar.bindings.zbar.*;
 import static com.github.doblon8.jzbar.utils.QRCodeGenerator.generateQRCodeImage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -17,8 +16,8 @@ class QRCodeScanIntegrationTest {
         try (ImageScanner scanner = new ImageScanner();
              Image image = new Image()) {
             // Configure the scanner to only scan QR codes
-            scanner.setConfig(ZBAR_NONE(), ZBAR_CFG_ENABLE(), 0);
-            scanner.setConfig(ZBAR_QRCODE(), ZBAR_CFG_ENABLE(), 1);
+            scanner.setConfig(SymbolType.NONE, Config.ENABLE, 0);
+            scanner.setConfig(SymbolType.QRCODE, Config.ENABLE, 1);
 
             // Set the image data
             image.setSize(img.getWidth(), img.getHeight());
