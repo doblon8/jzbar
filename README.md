@@ -2,7 +2,7 @@
 Java Foreign Function & Memory bindings for
 [ZBar](https://zbar.sourceforge.net/).
 ## Requirements
-- [ZBar](http://zbar.sourceforge.net/) shared library (`libzbar`) must be installed on the system.
+[ZBar](http://zbar.sourceforge.net/) shared library (`libzbar`) must be installed on the system.
   - On Linux: Install via your package manager (e.g., `sudo apt install libzbar-dev`)
   - On macOS: Use Homebrew (`brew install zbar`)
   - On Windows: Ensure `zbar.dll` is available in your `PATH`
@@ -14,7 +14,7 @@ git clone https://github.com/doblon8/jzbar
 cd jzbar
 mvn clean install
 ```
-This installs the library to your local Maven repository (~/.m2/repository) so you can add it as a dependency in your own projects.
+This installs the library to your local Maven repository (`~/.m2/repository`) so you can add it as a dependency in your own projects.
 ## License
 Copyright © 2025 doblon8
 
