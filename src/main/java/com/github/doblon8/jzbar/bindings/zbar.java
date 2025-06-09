@@ -2,6 +2,8 @@
 
 package com.github.doblon8.jzbar.bindings;
 
+import com.github.doblon8.jzbar.utils.NativeLoader;
+
 import java.lang.invoke.*;
 import java.lang.foreign.*;
 import java.nio.ByteOrder;
@@ -55,8 +57,11 @@ public class zbar {
         };
     }
 
-    static final SymbolLookup SYMBOL_LOOKUP = SymbolLookup.libraryLookup(System.mapLibraryName("zbar"), LIBRARY_ARENA)
-            .or(SymbolLookup.loaderLookup())
+    static {
+        NativeLoader.loadZBar();
+    }
+
+    static final SymbolLookup SYMBOL_LOOKUP = SymbolLookup.loaderLookup()
             .or(Linker.nativeLinker().defaultLookup());
 
     public static final ValueLayout.OfBoolean C_BOOL = ValueLayout.JAVA_BOOLEAN;
