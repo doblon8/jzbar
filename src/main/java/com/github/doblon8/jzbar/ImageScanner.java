@@ -12,16 +12,16 @@ public class ImageScanner implements AutoCloseable {
     }
 
     public int scanImage(Image image) throws ZBarException {
-        int result = zbar_scan_image(segment, image.segment());
-        if (result == -1) {
+        int scanResult = zbar_scan_image(segment, image.segment());
+        if (scanResult == -1) {
             throw new ZBarException("Error scanning image");
         }
-        return result;
+        return scanResult;
     }
 
     public void setConfig(int symbology, int config, int value) throws ZBarException {
-        int result = zbar_image_scanner_set_config(segment, symbology, config, value);
-        if (result != 0) {
+        int status = zbar_image_scanner_set_config(segment, symbology, config, value);
+        if (status != 0) {
             throw new ZBarException("Failed to set config");
         }
     }
