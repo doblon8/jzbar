@@ -1,12 +1,12 @@
 package com.github.doblon8.jzbar;
 
 import com.github.doblon8.jzbar.utils.ImageUtils;
+import com.github.doblon8.jzbar.utils.QRCodeGenerator;
 import com.google.zxing.WriterException;
 import org.junit.jupiter.api.Test;
 
 import java.awt.image.BufferedImage;
 
-import static com.github.doblon8.jzbar.utils.QRCodeGenerator.generateQRCodeImage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class QRCodeScanIntegrationTest {
@@ -40,7 +40,7 @@ class QRCodeScanIntegrationTest {
     void scanQRCodeBufferedImage() throws WriterException, ZBarException {
         String text = "Hello, World!";
         int size = 100;
-        BufferedImage image = generateQRCodeImage(text, size);
+        BufferedImage image = QRCodeGenerator.generateQRCodeImage(text, size);
         String scannedText = scanQRCodeBufferedImage(image);
         assertEquals(text, scannedText, "Scanned text does not match original text");
 
