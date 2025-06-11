@@ -22,7 +22,7 @@ public class Image implements AutoCloseable {
     }
 
     public void setFormat(String format) {
-        long fmt = fourccParse(format);
+        long fmt = parseFourcc(format);
         zbar_image_set_format(segment, fmt);
     }
 
@@ -53,7 +53,7 @@ public class Image implements AutoCloseable {
         return symbols;
     }
 
-    private long fourccParse(String format) {
+    private long parseFourcc(String format) {
         int length = format.length();
         if (length != 4) {
             throw new IllegalArgumentException("Format must be 4 characters");
