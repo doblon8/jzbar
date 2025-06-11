@@ -54,11 +54,12 @@ public class Image implements AutoCloseable {
     }
 
     private long fourccParse(String format) {
-        if (format.length() != 4) {
+        int length = format.length();
+        if (length != 4) {
             throw new IllegalArgumentException("Format must be 4 characters");
         }
         long fourcc = 0;
-        for (int i = 0; i < format.length(); i++) {
+        for (int i = 0; i < length; i++) {
             fourcc |= ((long) format.charAt(i) & 0xFF) << (i * 8);
         }
         return fourcc;
