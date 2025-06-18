@@ -10,7 +10,7 @@ import java.awt.image.BufferedImage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class QRCodeScanIntegrationTest {
-    private static String scanQRCodeBufferedImage(BufferedImage img) throws ZBarException {
+    private String scanQRCodeBufferedImage(BufferedImage img) throws ZBarException {
         byte[] data = ImageUtils.convertToY800(img);
 
         try (ImageScanner scanner = new ImageScanner();
