@@ -7,6 +7,33 @@
     <groupId>io.github.doblon8</groupId>
     <artifactId>jzbar</artifactId>
     <version>0.0.1</version>
+    <packaging>jar</packaging>
+
+    <name>jzbar</name>
+    <description>Java Foreign Function and Memory bindings for ZBar</description>
+    <url>https://github.com/doblon8/jzbar</url>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>doblon8</name>
+            <email>doblon8@proton.me</email>
+            <url>https://github.com/doblon8</url>
+        </developer>
+    </developers>
+
+    <scm>
+        <url>https://github.com/doblon8/jzbar/tree/main</url>
+        <connection>scm:git:git://github.com/doblon8/jzbar.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com:doblon8/jzbar.git</developerConnection>
+        <tag>v0.0.1</tag>
+    </scm>
 
     <properties>
         <maven.compiler.source>22</maven.compiler.source>
