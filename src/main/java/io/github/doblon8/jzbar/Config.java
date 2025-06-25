@@ -1,6 +1,6 @@
-package com.github.doblon8.jzbar;
+package io.github.doblon8.jzbar;
 
-import static com.github.doblon8.jzbar.bindings.zbar.*;
+import static io.github.doblon8.jzbar.bindings.zbar.*;
 
 public class Config {
     public static final int ADD_CHECK = ZBAR_CFG_ADD_CHECK();

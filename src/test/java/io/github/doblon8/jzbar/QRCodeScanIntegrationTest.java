@@ -1,7 +1,7 @@
-package com.github.doblon8.jzbar;
+package io.github.doblon8.jzbar;
 
-import com.github.doblon8.jzbar.utils.ImageUtils;
-import com.github.doblon8.jzbar.utils.QRCodeGenerator;
+import io.github.doblon8.jzbar.utils.ImageUtils;
+import io.github.doblon8.jzbar.utils.QRCodeGenerator;
 import com.google.zxing.WriterException;
 import org.junit.jupiter.api.Test;
 

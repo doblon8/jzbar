@@ -1,8 +1,8 @@
-package com.github.doblon8.jzbar;
+package io.github.doblon8.jzbar;
 
 import java.lang.foreign.MemorySegment;
 
-import static com.github.doblon8.jzbar.bindings.zbar.*;
+import static io.github.doblon8.jzbar.bindings.zbar.*;
 
 public class Symbol {
     private final MemorySegment segment;

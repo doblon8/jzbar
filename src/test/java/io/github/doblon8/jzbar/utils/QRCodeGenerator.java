@@ -1,4 +1,4 @@
-package com.github.doblon8.jzbar.utils;
+package io.github.doblon8.jzbar.utils;
 
 import java.awt.image.BufferedImage;
 import java.io.File;

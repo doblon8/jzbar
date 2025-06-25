@@ -1,11 +1,11 @@
-package com.github.doblon8.jzbar;
+package io.github.doblon8.jzbar;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.github.doblon8.jzbar.bindings.zbar.*;
+import static io.github.doblon8.jzbar.bindings.zbar.*;
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 
 public class Image implements AutoCloseable {

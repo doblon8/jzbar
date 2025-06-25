@@ -1,6 +1,6 @@
-package com.github.doblon8.jzbar;
+package io.github.doblon8.jzbar;
 
-import static com.github.doblon8.jzbar.bindings.zbar.*;
+import static io.github.doblon8.jzbar.bindings.zbar.*;
 
 public class SymbolType {
     public static final int ADDON = ZBAR_ADDON();

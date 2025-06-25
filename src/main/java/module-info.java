@@ -1,4 +1,4 @@
-module com.github.doblon8.jzbar {
+module io.github.doblon8.jzbar {
     requires java.desktop;
-    exports com.github.doblon8.jzbar;
+    exports io.github.doblon8.jzbar;
 }

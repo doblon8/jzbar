@@ -1,4 +1,4 @@
-package com.github.doblon8.jzbar.utils;
+package io.github.doblon8.jzbar.utils;
 
 import java.io.InputStream;
 import java.nio.file.Files;
