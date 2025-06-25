@@ -2,13 +2,10 @@
 Java Foreign Function & Memory bindings for
 [ZBar](https://zbar.sourceforge.net/).
 ## Installation
-This library is not yet published to a public Maven repository. To use it, clone the repo and install it locally using Maven:
-```bash
-git clone https://github.com/doblon8/jzbar
-cd jzbar
-mvn clean install
-```
-This installs the library to your local Maven repository (`~/.m2/repository`) so you can add it as a dependency in your own projects.
+jzbar is published to Maven Central. Add it as a dependency in your project's build configuration using the coordinates:
+- Group ID: `io.github.doblon8`
+- Artifact ID: `jzbar`
+- Version: `0.0.1`
 ## Publishing to Maven Central
 To publish this project to Maven Central:
 1. Create a `settings.xml` file with the following content:
