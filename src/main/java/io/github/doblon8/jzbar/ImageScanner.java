@@ -26,6 +26,11 @@ public class ImageScanner implements AutoCloseable {
         }
     }
 
+    public void setConfig(int symbology, boolean enabled) throws ZBarException {
+        int value = enabled ? 1 : 0;
+        setConfig(symbology, Config.ENABLE, value);
+    }
+
     @Override
     public void close() {
         if (segment != MemorySegment.NULL) {
