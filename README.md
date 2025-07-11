@@ -19,3 +19,10 @@ To add `jzbar` as a dependency using Maven, include the following in your `pom.x
 For other build tools, retrieve the dependency from Maven Central using the same coordinates.
 
 `jzbar` bundles the native `ZBar` library for supported platforms, so no system-wide installation is required.
+
+## License
+
+This project is licensed under the GNU LGPL 2.1, the same as the `ZBar` library.
+
+See the [LICENSE](./LICENSE) file for details.
+
