@@ -6,6 +6,14 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
 public class NativeLoader {
+    /**
+     * Load the native ZBar library based on the current operating system and architecture.
+     * <p>
+     * The library is loaded from the classpath and extracted to a temporary directory.
+     *
+     * @throws UnsupportedOperationException if the current OS or architecture is not supported
+     * @throws RuntimeException if an error occurs while loading the native library
+     */
     public static void loadZBar() {
         String os = getOsName();
         String arch = getArchName();
@@ -43,6 +51,11 @@ public class NativeLoader {
         }
     }
 
+    /**
+     * Get the name of the current operating system.
+     *
+     * @return the OS name as a String, either "linux", "osx", or "windows"
+     */
     private static String getOsName() {
         String os = System.getProperty("os.name").toLowerCase();
         if (os.contains("nux")) {
@@ -56,6 +69,11 @@ public class NativeLoader {
         }
     }
 
+    /**
+     * Get the name of the current architecture.
+     *
+     * @return the architecture name as a String, either "aarch64" or "x64"
+     */
     private static String getArchName() {
         String arch = System.getProperty("os.arch").toLowerCase();
         if (arch.contains("aarch64") || arch.contains("arm64")) {
