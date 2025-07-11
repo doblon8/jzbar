@@ -6,7 +6,7 @@
 
     <groupId>io.github.doblon8</groupId>
     <artifactId>jzbar</artifactId>
-    <version>0.0.1</version>
+    <version>0.1.0</version>
     <packaging>jar</packaging>
 
     <name>jzbar</name>
@@ -33,7 +33,7 @@
         <url>https://github.com/doblon8/jzbar/tree/main</url>
         <connection>scm:git:git://github.com/doblon8/jzbar.git</connection>
         <developerConnection>scm:git:ssh://git@github.com:doblon8/jzbar.git</developerConnection>
-        <tag>v0.0.1</tag>
+        <tag>v0.1.0</tag>
     </scm>
 
     <properties>
