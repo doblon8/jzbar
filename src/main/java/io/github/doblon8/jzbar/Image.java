@@ -36,7 +36,7 @@ public class Image implements AutoCloseable {
     }
 
     /**
-     * Specifies the pixel size of the image.
+     * Specify the pixel size of the image.
      * <p>
      * Note: this also resets the crop rectangle to the full image
      * ({@code 0, 0, width, height}).
@@ -51,7 +51,7 @@ public class Image implements AutoCloseable {
     }
 
     /**
-     * Specifies the image sample data.
+     * Specify the image sample data.
      * <p>
      * Note: application image data will not be modified by the library.
      *
