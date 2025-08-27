@@ -93,7 +93,9 @@ public class Image implements AutoCloseable {
     /**
      * Returns the fourcc format code of the image.
      *
-     * @return the fourcc format code as a string (e.g. "Y800")
+     * @param format four‑character code (e.g. {@code "Y800"})
+     * @return the fourcc format code as a long
+     * @throws IllegalArgumentException if the format is not 4 characters
      */
     private long parseFourcc(String format) {
         int length = format.length();
