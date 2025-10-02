@@ -1,6 +1,6 @@
 # jzbar
 
-Java Foreign Function & Memory bindings for [ZBar](https://zbar.sourceforge.net/).
+Java Foreign Function & Memory bindings for [ZBar](https://github.com/mchehab/zbar).
 
 ## Installation
 
