@@ -34,7 +34,7 @@ public class NativeLoader {
         };
 
         try {
-            Path tempDir = Files.createTempDirectory("zbar-native");
+            Path tempDir = createOwnerOnlyTempDir("zbar-native");
             tempDir.toFile().deleteOnExit();
 
             for (String lib : libs) {
