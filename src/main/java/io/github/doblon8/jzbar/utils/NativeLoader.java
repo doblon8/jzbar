@@ -9,11 +9,27 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.*;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.Set;
+import java.security.MessageDigest;
+import java.util.*;
+
 
 public class NativeLoader {
+
+    // Map of library filenames to their expected SHA-256 hashes (in hex)
+    private static final Map<String, String> LIB_HASHES = Map.ofEntries(
+            // Linux
+            Map.entry("linux-aarch64-libzbar.so", "ed61c047c092d26ccad94193b83d44acca7d4e5583c0c38302f5b7130135e786"),
+            Map.entry("linux-x64-libzbar.so", "4f62893ae033aba5cbeaa48f41559716fda1522daad7eb98692ad3397b00d85f"),
+
+            // macOS
+            Map.entry("osx-aarch64-libzbar.dylib", "c667d65ceac184fa9a651dfe7cab398343ad3009082e618531a27f3fdb2cfb18"),
+            Map.entry("osx-x64-libzbar.dylib", "338b57fddcd72dacf68900d5b0507fee8226e8201606eb33e190cc3708a1458c"),
+
+            // Windows
+            Map.entry("windows-x64-iconv-2.dll", "c33c49d95e5800f47d34e0da7e32a7ae583f9e3e39b3030c5dc320c950642ff6"),
+            Map.entry("windows-x64-zbar.dll", "c68e4dcb1bd6cd7ba3e0972f2b32192fa02c09315ee0eb93799cb0e444fe9956")
+    );
+
     /**
      * Load the native ZBar library based on the current operating system and architecture.
      * <p>
@@ -66,10 +82,26 @@ public class NativeLoader {
                         }
                     }
 
-                    // Copy the library to the temp file
-                    try (OutputStream out = Files.newOutputStream(tempFile, StandardOpenOption.WRITE)) {
-                        in.transferTo(out);
-                        out.flush();
+                    // Copy library bytes to temp file and compute SHA-256
+                    MessageDigest md = MessageDigest.getInstance("SHA-256");
+                    try (OutputStream outputStream = Files.newOutputStream(tempFile, StandardOpenOption.WRITE)) {
+                        byte[] buffer = new byte[8192];
+                        int read;
+                        while ((read = in.read(buffer)) != -1) {
+                            outputStream.write(buffer, 0, read);
+                            md.update(buffer, 0, read);
+                        }
+                        outputStream.flush();
+                    }
+
+                    // Verify SHA-256 digest
+                    String key = os + "-" + arch + "-" + lib;
+                    String expectedHex = LIB_HASHES.get(key);
+                    if (expectedHex == null) throw new IllegalStateException("No SHA-256 entry for " + key);
+
+                    String actualHex = bytesToHex(md.digest());
+                    if (!actualHex.equalsIgnoreCase(expectedHex)) {
+                        throw new SecurityException("SHA-256 mismatch for " + lib);
                     }
 
                     // Ensure the temp file is deleted on exit
@@ -83,6 +115,20 @@ public class NativeLoader {
         } catch (Exception e) {
             throw new RuntimeException("Failed to load native libraries", e);
         }
+    }
+
+    /**
+     * Convert a byte array to a hexadecimal string.
+     *
+     * @param digest the byte array to convert
+     * @return the hexadecimal representation of the byte array
+     */
+    private static String bytesToHex(byte[] digest) {
+        StringBuilder sb = new StringBuilder(digest.length * 2);
+        for (byte b : digest) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
     }
 
     /**
