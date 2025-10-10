@@ -20,6 +20,15 @@ For other build tools, retrieve the dependency from Maven Central using the same
 
 `jzbar` bundles the native `ZBar` library for supported platforms, so no system-wide installation is required.
 
+## Java bindings
+Java bindings were generated using [[https://github.com/openjdk/jextract][jextract]].
+
+You can regenerate them by running the provided script from the project root:
+
+```sh
+./generate-bindings.sh
+```
+
 ## License
 
 This project is licensed under the GNU LGPL 2.1, the same as the `ZBar` library.
