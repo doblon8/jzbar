@@ -3,10 +3,11 @@ package io.github.doblon8.jzbar.utils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.*;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -42,10 +43,40 @@ public class NativeLoader {
                     if (in == null) {
                         throw new IllegalStateException("Missing native lib: " + basePath + lib);
                     }
-                    Path out = tempDir.resolve(lib);
-                    Files.copy(in, out, StandardCopyOption.REPLACE_EXISTING);
-                    out.toFile().deleteOnExit();
-                    System.load(out.toAbsolutePath().toString());
+
+                    // Create an exclusive temp file
+                    String suffix = lib.contains(".") ? lib.substring(lib.lastIndexOf('.')) : null;
+                    Path tempFile = Files.createTempFile(tempDir, "lib-", suffix);
+
+                    // Set restrictive permissions on the temp file
+                    try {
+                        Set<PosixFilePermission> perms = EnumSet.of(
+                                PosixFilePermission.OWNER_READ,
+                                PosixFilePermission.OWNER_WRITE
+                        );
+                        Files.setPosixFilePermissions(tempFile, perms);
+                    } catch (UnsupportedOperationException ignored) {
+                        // Not a POSIX FS / platform; fall through to fallback logic
+                        File f = tempFile.toFile();
+                        // Note: Using bitwise & (not &&) to ensure both methods run
+                        boolean ok = f.setReadable(true, true) &
+                                f.setWritable(true, true);
+                        if (!ok) {
+                            throw new IOException("Failed to set owner-only permissions on temp file: " + tempFile);
+                        }
+                    }
+
+                    // Copy the library to the temp file
+                    try (OutputStream out = Files.newOutputStream(tempFile, StandardOpenOption.WRITE)) {
+                        in.transferTo(out);
+                        out.flush();
+                    }
+
+                    // Ensure the temp file is deleted on exit
+                    tempFile.toFile().deleteOnExit();
+
+                    // Load the library
+                    System.load(tempFile.toAbsolutePath().toString());
                 }
             }
 
