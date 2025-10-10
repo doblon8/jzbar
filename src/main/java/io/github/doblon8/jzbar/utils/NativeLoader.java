@@ -12,7 +12,7 @@ public class NativeLoader {
      * The library is loaded from the classpath and extracted to a temporary directory.
      *
      * @throws UnsupportedOperationException if the current OS or architecture is not supported
-     * @throws RuntimeException if an error occurs while loading the native library
+     * @throws RuntimeException              if an error occurs while loading the native library
      */
     public static void loadZBar() {
         String os = getOsName();
