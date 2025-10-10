@@ -54,12 +54,23 @@ public class zbar {
         };
     }
 
-    static {
-        NativeLoader.loadZBar();
-    }
+    static final SymbolLookup SYMBOL_LOOKUP;
 
-    static final SymbolLookup SYMBOL_LOOKUP = SymbolLookup.loaderLookup()
-            .or(Linker.nativeLinker().defaultLookup());
+    static {
+        SymbolLookup lookup = null;
+        try {
+            // Try system library first
+            lookup = SymbolLookup.libraryLookup(System.mapLibraryName("zbar"), LIBRARY_ARENA)
+                    .or(SymbolLookup.loaderLookup())
+                    .or(Linker.nativeLinker().defaultLookup());
+        } catch (Throwable t) {
+            // Fallback to bundled library
+            NativeLoader.loadZBar();
+            lookup = SymbolLookup.loaderLookup()
+                    .or(Linker.nativeLinker().defaultLookup());
+        }
+        SYMBOL_LOOKUP = lookup;
+    }
 
     public static final ValueLayout.OfBoolean C_BOOL = ValueLayout.JAVA_BOOLEAN;
     public static final ValueLayout.OfByte C_CHAR = ValueLayout.JAVA_BYTE;
