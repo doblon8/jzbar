@@ -19,14 +19,10 @@ public class NativeLoader {
         String arch = getArchName();
 
         String basePath = "/native/" + os + "/" + arch + "/";
-        String[] windowsLibs = {"iconv-2.dll", "zbar.dll"};
-        String[] linuxLibs = {"libzbar.so"};
-        String[] macLibs = {"libzbar.dylib"};
-
         String[] libs = switch (os) {
-            case "windows" -> windowsLibs;
-            case "linux" -> linuxLibs;
-            case "osx" -> macLibs;
+            case "windows" -> new String[]{"iconv-2.dll", "zbar.dll"};
+            case "linux" -> new String[]{"libzbar.so"};
+            case "osx" -> new String[]{"libzbar.dylib"};
             default -> throw new UnsupportedOperationException("Unsupported OS: " + os);
         };
 
