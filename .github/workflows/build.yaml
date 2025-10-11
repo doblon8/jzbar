@@ -8,11 +8,11 @@ on:
 
 jobs:
   build:
-
     runs-on: ${{ matrix.os }}
     strategy:
-        matrix:
-            os: [windows-2022, ubuntu-22.04, ubuntu-22.04-arm, macos-13, macos-14]
+      matrix:
+        os: [windows-2022, ubuntu-22.04, ubuntu-22.04-arm, macos-13, macos-14]
+        install-zbar: [true, false]
 
     steps:
     - uses: actions/checkout@v4
@@ -23,6 +23,18 @@ jobs:
         distribution: 'temurin'
         java-version: '22.0.2'
         cache: maven
+
+    - name: Install zbar (Ubuntu)
+      if: matrix.install-zbar && startsWith(matrix.os, 'ubuntu')
+      run: sudo apt-get update && sudo apt-get install -y libzbar0
+
+    - name: Install zbar (macOS)
+      if: matrix.install-zbar && startsWith(matrix.os, 'macos')
+      run: brew install zbar
+
+    - name: Install zbar (Windows)
+      if: matrix.install-zbar && matrix.os == 'windows-2022'
+      run: choco install zbar
 
     - name: Build with Maven
       run: mvn -B package
