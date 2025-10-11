@@ -48,7 +48,6 @@ public class NativeLoader {
                     System.load(out.toAbsolutePath().toString());
                 }
             }
-
         } catch (Exception e) {
             throw new RuntimeException("Failed to load native libraries", e);
         }
