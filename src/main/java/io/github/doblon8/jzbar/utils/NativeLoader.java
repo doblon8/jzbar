@@ -65,7 +65,7 @@ public class NativeLoader {
      * @return the path to the newly created temporary directory
      * @throws IOException if an I/O error occurs or if setting permissions fails
      */
-    public static Path createOwnerOnlyTempDir(String prefix) throws IOException {
+    private static Path createOwnerOnlyTempDir(String prefix) throws IOException {
         Path tmpRoot = Paths.get(System.getProperty("java.io.tmpdir"));
 
         // POSIX: try atomic creation with owner-only perms (rwx------)
