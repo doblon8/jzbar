@@ -33,7 +33,7 @@ jobs:
       run: brew install zbar
 
     - name: Install zbar (Windows)
-      if: matrix.install-zbar && matrix.os == 'windows-2022'
+      if: matrix.install-zbar && startsWith(matrix.os, 'windows')
       run: choco install zbar
 
     - name: Build with Maven
