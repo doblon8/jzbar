@@ -3,10 +3,7 @@ package io.github.doblon8.jzbar.utils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
 import java.nio.file.attribute.*;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -34,7 +31,7 @@ public class NativeLoader {
         };
 
         try {
-            Path tempDir = createOwnerOnlyTempDir("zbar-native");
+            Path tempDir = createTempDir("zbar-native-");
             tempDir.toFile().deleteOnExit();
 
             for (String lib : libs) {
@@ -54,70 +51,43 @@ public class NativeLoader {
     }
 
     /**
-     * Create a temporary directory with owner-only permissions.
-     * <p>
-     * This method attempts to create a temporary directory with permissions
-     * that restrict access to the owner only. It first tries to use POSIX
-     * file permissions, then falls back to ACLs on Windows, and finally
-     * uses the java.io.File API as a last resort.
+     * Create a temporary directory.
      *
-     * @param prefix the prefix string to be used in generating the directory's name; may be null
-     * @return the path to the newly created temporary directory
-     * @throws IOException if an I/O error occurs or if setting permissions fails
+     * @param prefix the prefix string to be used in generating the directory's name
+     * @return the path to the created temporary directory
+     * @throws IOException if an I/O error occurs or the temporary-directory could not be created
      */
-    private static Path createOwnerOnlyTempDir(String prefix) throws IOException {
+    private static Path createTempDir(String prefix) throws IOException {
         Path tmpRoot = Paths.get(System.getProperty("java.io.tmpdir"));
-
-        // POSIX: try atomic creation with owner-only perms (rwx------)
         try {
-            Set<PosixFilePermission> posixPerms = EnumSet.of(
-                    PosixFilePermission.OWNER_READ,
-                    PosixFilePermission.OWNER_WRITE,
-                    PosixFilePermission.OWNER_EXECUTE
-            );
-            return Files.createTempDirectory(tmpRoot, prefix, PosixFilePermissions.asFileAttribute(posixPerms));
-        } catch (UnsupportedOperationException e) {
-            // Not a POSIX FS / platform; fall through to fallback logic
-        }
-
-        // Fallback: create the dir, then try ACLs (Windows) or File API
-        Path dir = Files.createTempDirectory(tmpRoot, prefix);
-
-        // Try ACL view (best-effort)
-        try {
-            AclFileAttributeView aclView = Files.getFileAttributeView(dir, AclFileAttributeView.class);
-            if (aclView != null) {
-                UserPrincipalLookupService lookup = dir.getFileSystem().getUserPrincipalLookupService();
-                String userName = System.getProperty("user.name");
-                UserPrincipal user = lookup.lookupPrincipalByName(userName);
-
-                // Allow full control to current user only
-                Set<AclEntryPermission> allPerms = EnumSet.allOf(AclEntryPermission.class);
-                AclEntry allow = AclEntry.newBuilder()
-                        .setType(AclEntryType.ALLOW)
-                        .setPrincipal(user)
-                        .setPermissions(allPerms)
-                        .build();
-
-                aclView.setAcl(Collections.singletonList(allow));
-                return dir;
+            if (isPosixCompliant()) {
+                Set<PosixFilePermission> ownerOnlyPerms = EnumSet.of(
+                        PosixFilePermission.OWNER_READ,
+                        PosixFilePermission.OWNER_WRITE,
+                        PosixFilePermission.OWNER_EXECUTE
+                );
+                return Files.createTempDirectory(tmpRoot, prefix, PosixFilePermissions.asFileAttribute(ownerOnlyPerms));
+            } else {
+                return Files.createTempDirectory(tmpRoot, prefix);
             }
-        } catch (Exception ignored) {
-            // ACLs not available or failed — fall back to File permission API
+        } catch (IOException e) {
+            throw new IOException("Failed to create temporary directory", e);
         }
+    }
 
-        // Final fallback: best-effort owner-only via java.io.File flags
-        File f = dir.toFile();
-        // Note: Using bitwise & (not &&) to ensure all three methods run
-        boolean ok =
-                f.setWritable(true, true) &
-                        f.setReadable(true, true) &
-                        f.setExecutable(true, true);
-
-        if (!ok) {
-            throw new IOException("Failed to set owner-only permissions on temp directory: " + dir);
+    /**
+     * Check if the current file system is POSIX compliant.
+     *
+     * @return true if POSIX compliant, false otherwise
+     */
+    private static boolean isPosixCompliant() {
+        try {
+            return FileSystems.getDefault()
+                    .supportedFileAttributeViews()
+                    .contains("posix");
+        } catch (Exception e) {
+            return false;
         }
-        return dir;
     }
 
 
