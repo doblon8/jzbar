@@ -12,7 +12,7 @@ To add `jzbar` as a dependency using Maven, include the following in your `pom.x
 <dependency>
   <groupId>io.github.doblon8</groupId>
   <artifactId>jzbar</artifactId>
-  <version>0.2.1</version>
+  <version>0.3.0</version>
 </dependency>
 ```
 
