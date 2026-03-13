@@ -64,10 +64,15 @@ public class zbar {
                     .or(SymbolLookup.loaderLookup())
                     .or(Linker.nativeLinker().defaultLookup());
         } catch (Throwable t) {
-            // Fallback to bundled library
-            NativeLoader.loadZBar();
-            lookup = SymbolLookup.loaderLookup()
-                    .or(Linker.nativeLinker().defaultLookup());
+            // Check if the library was already loaded by the host application (e.g. via System.load)
+            SymbolLookup loaderLookup = SymbolLookup.loaderLookup();
+            if (loaderLookup.find("zbar_image_create").isPresent()) {
+                lookup = loaderLookup.or(Linker.nativeLinker().defaultLookup());
+            } else {
+                // Fallback to bundled library
+                NativeLoader.loadZBar();
+                lookup = loaderLookup.or(Linker.nativeLinker().defaultLookup());
+            }
         }
         SYMBOL_LOOKUP = lookup;
     }
