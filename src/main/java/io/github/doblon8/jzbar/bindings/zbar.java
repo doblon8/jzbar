@@ -57,24 +57,12 @@ public class zbar {
     static final SymbolLookup SYMBOL_LOOKUP;
 
     static {
-        SymbolLookup lookup = null;
         try {
-            // Try system library first
-            lookup = SymbolLookup.libraryLookup(System.mapLibraryName("zbar"), LIBRARY_ARENA)
-                    .or(SymbolLookup.loaderLookup())
-                    .or(Linker.nativeLinker().defaultLookup());
+            System.loadLibrary("zbar");
         } catch (Throwable t) {
-            // Check if the library was already loaded by the host application (e.g. via System.load)
-            SymbolLookup loaderLookup = SymbolLookup.loaderLookup();
-            if (loaderLookup.find("zbar_image_create").isPresent()) {
-                lookup = loaderLookup.or(Linker.nativeLinker().defaultLookup());
-            } else {
-                // Fallback to bundled library
-                NativeLoader.loadZBar();
-                lookup = loaderLookup.or(Linker.nativeLinker().defaultLookup());
-            }
+            NativeLoader.loadZBar(); // Fallback to bundled library
         }
-        SYMBOL_LOOKUP = lookup;
+        SYMBOL_LOOKUP = SymbolLookup.loaderLookup().or(Linker.nativeLinker().defaultLookup());
     }
 
     public static final ValueLayout.OfBoolean C_BOOL = ValueLayout.JAVA_BOOLEAN;
