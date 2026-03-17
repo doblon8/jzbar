@@ -57,7 +57,7 @@ public class zbar {
     static final SymbolLookup SYMBOL_LOOKUP;
 
     static {
-        SymbolLookup lookup = null;
+        SymbolLookup lookup;
         try {
             // Try system library first
             lookup = SymbolLookup.libraryLookup(System.mapLibraryName("zbar"), LIBRARY_ARENA)
