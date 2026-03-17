@@ -57,16 +57,12 @@ public class zbar {
     static final SymbolLookup SYMBOL_LOOKUP;
 
     static {
-        SymbolLookup lookup;
         try {
             System.loadLibrary("zbar");
-            lookup = SymbolLookup.loaderLookup();
         } catch (Throwable t) {
-            // Fallback to bundled library
-            NativeLoader.loadZBar();
-            lookup = SymbolLookup.loaderLookup().or(Linker.nativeLinker().defaultLookup());
+            NativeLoader.loadZBar(); // Fallback to bundled library
         }
-        SYMBOL_LOOKUP = lookup;
+        SYMBOL_LOOKUP = SymbolLookup.loaderLookup().or(Linker.nativeLinker().defaultLookup());
     }
 
     public static final ValueLayout.OfBoolean C_BOOL = ValueLayout.JAVA_BOOLEAN;
