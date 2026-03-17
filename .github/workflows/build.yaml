@@ -12,7 +12,6 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-24.04, ubuntu-24.04-arm, macos-15-intel, macos-15, windows-2025]
-        install-zbar: [true, false]
 
     steps:
     - uses: actions/checkout@v6
@@ -23,18 +22,6 @@ jobs:
         distribution: 'temurin'
         java-version: '25'
         cache: maven
-
-    - name: Install zbar (Ubuntu)
-      if: matrix.install-zbar && startsWith(matrix.os, 'ubuntu')
-      run: sudo apt-get update && sudo apt-get install -y libzbar0
-
-    - name: Install zbar (macOS)
-      if: matrix.install-zbar && startsWith(matrix.os, 'macos')
-      run: brew install zbar
-
-    - name: Install zbar (Windows)
-      if: matrix.install-zbar && startsWith(matrix.os, 'windows')
-      run: choco install zbar
 
     - name: Build with Maven
       run: mvn -B package
