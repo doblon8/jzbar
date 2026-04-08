@@ -45,6 +45,17 @@ public class Symbol {
     }
 
     /**
+     * Retrieve type of decoded symbol.
+     *
+     * @return the symbol type as a String, e.g., "QR-Code", "EAN-13", "CODE-128",
+     * or "UNKNOWN" if the encoding is not recognized
+     */
+    public String getType() {
+        int type = zbar_symbol_get_type(segment);
+        return zbar_get_symbol_name(type).getString(0);
+    }
+
+    /**
      * Iterate the set to which this symbol belongs (there can be only one).
      *
      * @return the next symbol in the set, or null if there are no more symbols
