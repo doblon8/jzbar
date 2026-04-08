@@ -31,10 +31,10 @@ public class ZBar {
     /**
      * Set global library debug level.
      *
-     * @param verbosity desired debug level. Higher values create more spew.
+     * @param level desired debug level. Higher values create more spew.
      */
-    public static void setVerbosity(int verbosity) {
-        zbar_set_verbosity(verbosity);
+    public static void setVerbosity(int level) {
+        zbar_set_verbosity(level);
     }
 
     /**
