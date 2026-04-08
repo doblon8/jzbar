@@ -1,28 +1,3 @@
-# jzbar
-
-Java Foreign Function & Memory bindings for [ZBar](https://github.com/mchehab/zbar).
-
-## Installation
-
-`jzbar` is available from Maven Central.
-
-To add `jzbar` as a dependency using Maven, include the following in your `pom.xml`:
-
-```xml
-<dependency>
-  <groupId>io.github.doblon8</groupId>
-  <artifactId>jzbar</artifactId>
-  <version>0.3.2</version>
-</dependency>
-```
-
-For other build tools, retrieve the dependency from Maven Central using the same coordinates.
-
-`jzbar` bundles the native `ZBar` library for supported platforms, so no system-wide installation is required.
-
-## Usage example
-
-```java
 import com.google.zxing.WriterException;
 import io.github.doblon8.jzbar.*;
 import io.github.doblon8.jzbar.utils.ImageUtils;
@@ -58,16 +33,3 @@ void main() throws WriterException, ZBarException {
         }
     }
 }
-
-// Scanned data: Hello, World!
-// Symbol type: QR-Code
-// Symbol quality: 1
-// Symbol location: [Point[x=18, y=18], Point[x=18, y=81], Point[x=81, y=81], Point[x=81, y=18]]
-```
-
-## License
-
-This project is licensed under the GNU LGPL 2.1, the same as the `ZBar` library.
-
-See the [LICENSE](./LICENSE) file for details.
-
