@@ -25,6 +25,16 @@ public class Symbol {
     }
 
     /**
+     * Retrieve a symbol confidence metric.
+     *
+     * @return an unscaled, relative quantity: larger values are better than smaller values,
+     * where "large" and "small" are application dependent.
+     */
+    public int getQuality() {
+        return zbar_symbol_get_quality(segment);
+    }
+
+    /**
      * Retrieve general orientation of decoded symbol.
      *
      * @return the orientation as a String, e.g., "UP", "RIGHT", "DOWN", "LEFT"
