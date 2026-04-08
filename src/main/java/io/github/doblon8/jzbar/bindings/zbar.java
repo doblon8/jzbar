@@ -59,8 +59,12 @@ public class zbar {
     static {
         try {
             System.loadLibrary("zbar");
-        } catch (Throwable t) {
-            NativeLoader.loadZBar(); // Fallback to bundled library
+        } catch (UnsatisfiedLinkError e) {
+            try {
+                NativeLoader.loadZBar();
+            } catch (Exception | UnsatisfiedLinkError e2) {
+                // Library may already be loaded via System.load() by the caller
+            }
         }
         SYMBOL_LOOKUP = SymbolLookup.loaderLookup().or(Linker.nativeLinker().defaultLookup());
     }
