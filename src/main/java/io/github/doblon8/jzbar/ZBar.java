@@ -3,8 +3,7 @@ package io.github.doblon8.jzbar;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 
-import static io.github.doblon8.jzbar.bindings.zbar.C_INT;
-import static io.github.doblon8.jzbar.bindings.zbar.zbar_version;
+import static io.github.doblon8.jzbar.bindings.zbar.*;
 
 public class ZBar {
 
@@ -27,5 +26,21 @@ public class ZBar {
 
             return major + "." + minor + "." + patch;
         }
+    }
+
+    /**
+     * Set global library debug level.
+     *
+     * @param verbosity desired debug level. Higher values create more spew.
+     */
+    public static void setVerbosity(int verbosity) {
+        zbar_set_verbosity(verbosity);
+    }
+
+    /**
+     * Increase global library debug level.
+     */
+    public static void increaseVerbosity() {
+        zbar_increase_verbosity();
     }
 }
