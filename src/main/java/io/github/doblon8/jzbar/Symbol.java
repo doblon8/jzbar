@@ -1,6 +1,8 @@
 package io.github.doblon8.jzbar;
 
 import java.lang.foreign.MemorySegment;
+import java.util.ArrayList;
+import java.util.List;
 
 import static io.github.doblon8.jzbar.bindings.zbar.*;
 
@@ -53,6 +55,26 @@ public class Symbol {
     public String getType() {
         int type = zbar_symbol_get_type(segment);
         return zbar_get_symbol_name(type).getString(0);
+    }
+
+    /** Retrieve the location polygon.
+     * <p>
+     * The location polygon defines the image area that the symbol was extracted from.
+     *
+     * @return a list of points representing the vertices of the location polygon.
+     * The number of points can vary depending on the symbol type and the quality of the scan.
+     * For example, a QR code may have 4 points corresponding to its corners,
+     * while a linear barcode may have 2 points corresponding to its endpoints.
+     */
+    public List<Point> getLocationPolygon() {
+        int numberOfPoints = zbar_symbol_get_loc_size(segment);
+        List<Point> points = new ArrayList<>(numberOfPoints);
+        for (int i = 0; i < numberOfPoints; i++) {
+            int x = zbar_symbol_get_loc_x(segment, i);
+            int y = zbar_symbol_get_loc_y(segment, i);
+            points.add(new Point(x, y));
+        }
+        return points;
     }
 
     /**
