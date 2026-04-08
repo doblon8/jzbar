@@ -40,7 +40,8 @@ class QRCodeScanIntegrationTest {
     void scanQRCodeBufferedImage() throws WriterException, ZBarException {
         String text = "Hello, World!";
         int size = 100;
-        BufferedImage image = QRCodeGenerator.generateQRCodeImage(text, size);
+        int quietZone = 4;
+        BufferedImage image = QRCodeGenerator.generateQRCodeImage(text, size,  quietZone);
         String scannedText = scanQRCodeBufferedImage(image);
         assertEquals(text, scannedText, "Scanned text does not match original text");
 

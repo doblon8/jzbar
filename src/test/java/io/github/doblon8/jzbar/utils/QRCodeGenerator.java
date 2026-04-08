@@ -2,6 +2,8 @@ package io.github.doblon8.jzbar.utils;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import javax.imageio.ImageIO;
 import com.google.zxing.*;
 import com.google.zxing.common.BitMatrix;
@@ -9,9 +11,13 @@ import com.google.zxing.qrcode.QRCodeWriter;
 
 public class QRCodeGenerator {
 
-    public static BufferedImage generateQRCodeImage(String text, int size) throws WriterException {
+    public static BufferedImage generateQRCodeImage(String text, int size, int quietZone) throws WriterException {
         QRCodeWriter qrWriter = new QRCodeWriter();
-        BitMatrix bitMatrix = qrWriter.encode(text, BarcodeFormat.QR_CODE, size, size);
+
+        Map<EncodeHintType, Object> hints = new HashMap<>();
+        hints.put(EncodeHintType.MARGIN, quietZone); // quiet zone = 4 modules
+
+        BitMatrix bitMatrix = qrWriter.encode(text, BarcodeFormat.QR_CODE, size, size, hints);
 
         BufferedImage image = new BufferedImage(size, size, BufferedImage.TYPE_BYTE_GRAY);
         for (int x = 0; x < size; x++) {
