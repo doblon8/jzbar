@@ -5,10 +5,10 @@ import io.github.doblon8.jzbar.utils.QRCodeGenerator;
 
 void main() throws WriterException, ZBarException {
     var img = QRCodeGenerator.generateQRCodeImage("Hello, World!", 100, 4);
-    byte[] data = ImageUtils.convertToY800(img);
+    var data = ImageUtils.convertToY800(img);
 
-    try (ImageScanner scanner = new ImageScanner();
-         Image image = new Image()) {
+    try (var scanner = new ImageScanner();
+         var image = new Image()) {
         // Configure the scanner to only scan QR codes
         scanner.setConfig(SymbolType.NONE, Config.ENABLE, 0);
         scanner.setConfig(SymbolType.QRCODE, Config.ENABLE, 1);
@@ -19,7 +19,7 @@ void main() throws WriterException, ZBarException {
         image.setData(data);
 
         // Scan the image
-        int n = scanner.scanImage(image);
+        var n = scanner.scanImage(image);
         if (n == 0) {
             System.err.println("No symbols found.");
         } else if (n == 1) {
