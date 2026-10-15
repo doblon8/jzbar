@@ -13,16 +13,21 @@ jobs:
       run:
         shell: msys2 {0}
     env:
-      ZBAR_VERSION: "0.23.93"
-      ZBAR_URL: https://linuxtv.org/downloads/zbar/zbar-0.23.93.tar.bz2
-      ZBAR_SHA256: 83be8f85fc7c288fd91f98d52fc55db7eedbddcf10a83d9221d7034636683fa0
-      ICONV_VERSION: "1.17"
-      ICONV_URL: https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.17.tar.gz
-      ICONV_SHA256: 8f74213b56238c85a50a5329f77e06198771e70dd9a739779f4c02f65d971313
       TRIPLET: x86_64-w64-mingw32
       PREFIX: /usr/local
 
     steps:
+      # actions/checkout v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      # Export the pinned versions and hashes to the following steps. tr strips
+      # the CRs that a Windows checkout may add, which would corrupt the values.
+      - name: Load pinned sources
+        shell: bash
+        run: grep -E '^[A-Z0-9_]+=' native/sources.env | tr -d '\r' >> "$GITHUB_ENV"
+
       # msys2/setup-msys2 v2.33.0
       - uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e
         with:
@@ -41,9 +46,10 @@ jobs:
 
       - name: Fetch and verify sources
         run: |
+          : "${ZBAR_VERSION:?}" "${ZBAR_SHA256:?}" "${ICONV_VERSION:?}" "${ICONV_SHA256:?}"
           mkdir -p /tmp/src && cd /tmp/src
-          curl -fsSLo zbar.tar.bz2 "$ZBAR_URL"
-          curl -fsSLo libiconv.tar.gz "$ICONV_URL"
+          curl -fsSLo zbar.tar.bz2 "https://linuxtv.org/downloads/zbar/zbar-$ZBAR_VERSION.tar.bz2"
+          curl -fsSLo libiconv.tar.gz "https://ftp.gnu.org/pub/gnu/libiconv/libiconv-$ICONV_VERSION.tar.gz"
           echo "$ZBAR_SHA256  zbar.tar.bz2" | sha256sum -c -
           echo "$ICONV_SHA256  libiconv.tar.gz" | sha256sum -c -
           tar xjf zbar.tar.bz2
