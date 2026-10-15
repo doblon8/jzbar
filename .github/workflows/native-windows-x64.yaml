@@ -1,0 +1,115 @@
+name: "Native: Windows x64"
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-2025
+    defaults:
+      run:
+        shell: msys2 {0}
+    env:
+      ZBAR_VERSION: "0.23.93"
+      ZBAR_URL: https://linuxtv.org/downloads/zbar/zbar-0.23.93.tar.bz2
+      ZBAR_SHA256: 83be8f85fc7c288fd91f98d52fc55db7eedbddcf10a83d9221d7034636683fa0
+      ICONV_VERSION: "1.17"
+      ICONV_URL: https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.17.tar.gz
+      ICONV_SHA256: 8f74213b56238c85a50a5329f77e06198771e70dd9a739779f4c02f65d971313
+      TRIPLET: x86_64-w64-mingw32
+      PREFIX: /usr/local
+
+    steps:
+      # msys2/setup-msys2 v2.33.0
+      - uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e
+        with:
+          msystem: UCRT64
+          update: false
+          install: >-
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-pkgconf
+            make
+            curl
+
+      - name: Toolchain versions
+        run: |
+          gcc --version | head -1
+          ld --version | head -1
+
+      - name: Fetch and verify sources
+        run: |
+          mkdir -p /tmp/src && cd /tmp/src
+          curl -fsSLo zbar.tar.bz2 "$ZBAR_URL"
+          curl -fsSLo libiconv.tar.gz "$ICONV_URL"
+          echo "$ZBAR_SHA256  zbar.tar.bz2" | sha256sum -c -
+          echo "$ICONV_SHA256  libiconv.tar.gz" | sha256sum -c -
+          tar xjf zbar.tar.bz2
+          tar xzf libiconv.tar.gz
+
+      # -std=gnu17: libiconv 1.17 does not compile as C23 (GCC 15 default)
+      - name: Build libiconv (shared)
+        run: |
+          cd /tmp/src/libiconv-$ICONV_VERSION
+          ./configure --prefix="$PREFIX" --build=$TRIPLET --host=$TRIPLET \
+                      --enable-shared --disable-static --disable-nls \
+                      CFLAGS="-O2 -std=gnu17"
+          make -j"$(nproc)"
+          make install
+
+      # clock_gettime comes from winpthreads on MinGW. Offer the linker only the
+      # static archive so zbar.dll does not import libwinpthread-1.dll.
+      - name: Build ZBar (library only, no video)
+        run: |
+          mkdir -p /tmp/pthread-static
+          cp /ucrt64/lib/libwinpthread.a /tmp/pthread-static/libwinpthread.a
+          cp /ucrt64/lib/libwinpthread.a /tmp/pthread-static/libpthread.a
+          cd /tmp/src/zbar-$ZBAR_VERSION
+          ./configure --prefix="$PREFIX" --build=$TRIPLET --host=$TRIPLET \
+                      --enable-shared --disable-static \
+                      --disable-video --disable-doc --disable-nls \
+                      --without-jpeg --without-imagemagick --without-graphicsmagick \
+                      --without-python --without-gtk --without-gir \
+                      --without-qt --without-qt6 --without-java \
+                      --without-xshm --without-xv --without-dbus --without-npapi \
+                      --with-libiconv-prefix="$PREFIX" \
+                      CFLAGS="-O2 -std=gnu17" \
+                      CPPFLAGS="-D__USE_MINGW_ANSI_STDIO=1 -I$PREFIX/include" \
+                      LDFLAGS="-L/tmp/pthread-static -L$PREFIX/lib -static-libgcc"
+          make -C zbar -j"$(nproc)"
+
+      - name: Collect and verify
+        run: |
+          export LC_ALL=C
+          DIST="$(cygpath -u "$GITHUB_WORKSPACE")/dist"
+          mkdir -p "$DIST"
+          # zbar.dll is the name jzbar loads. libiconv-2.dll keeps its name
+          # because zbar.dll imports it by that exact name.
+          cp /tmp/src/zbar-$ZBAR_VERSION/zbar/.libs/libzbar-0.dll "$DIST/zbar.dll"
+          cp "$PREFIX/bin/libiconv-2.dll" "$DIST/"
+          strip --strip-unneeded "$DIST"/*.dll
+          cd "$DIST"
+
+          # only system DLLs plus libiconv-2.dll may be imported
+          bad=$(for f in *.dll; do objdump -p "$f" | awk '/DLL Name/{print $3}'; done \
+                | sort -u | grep -viE '^(kernel32|user32|gdi32|api-ms-win-crt-.*|libiconv-2)\.dll$' || true)
+          if [ -n "$bad" ]; then echo "FAIL: unexpected imports:"; echo "$bad"; exit 1; fi
+
+          # key API must be exported
+          for sym in zbar_version zbar_image_scanner_create; do
+            objdump -p zbar.dll | grep -q " $sym" || { echo "FAIL: missing export $sym"; exit 1; }
+          done
+
+          # no build paths or usernames
+          if strings -a -f *.dll | grep -iE '\.pdb|/tmp/|/home/|/d/a/|runner|D:\\|Users'; then
+            echo "FAIL: build path or username found in binaries"; exit 1
+          fi
+
+          sha256sum *.dll
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: windows-x64
+          path: dist/*.dll
