@@ -41,8 +41,8 @@ jobs:
 
       - name: Toolchain versions
         run: |
-          gcc --version | head -1
-          ld --version | head -1
+          gcc --version | sed -n 1p
+          ld --version | sed -n 1p
 
       - name: Fetch and verify sources
         run: |
@@ -104,8 +104,9 @@ jobs:
           if [ -n "$bad" ]; then echo "FAIL: unexpected imports:"; echo "$bad"; exit 1; fi
 
           # key API must be exported
+          exports=$(objdump -p zbar.dll)
           for sym in zbar_version zbar_image_scanner_create; do
-            objdump -p zbar.dll | grep -q " $sym" || { echo "FAIL: missing export $sym"; exit 1; }
+            grep -q " $sym" <<<"$exports" || { echo "FAIL: missing export $sym"; exit 1; }
           done
 
           # no build paths or usernames
