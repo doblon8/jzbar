@@ -15,6 +15,8 @@ jobs:
     env:
       TRIPLET: x86_64-w64-mingw32
       PREFIX: /usr/local
+      # strip would otherwise stamp the current time into the PE header
+      SOURCE_DATE_EPOCH: "0"
 
     steps:
       # actions/checkout v7.0.1
@@ -63,10 +65,13 @@ jobs:
           cd /tmp/src/libiconv-$ICONV_VERSION
           ./configure --prefix="$PREFIX" --build=$TRIPLET --host=$TRIPLET \
                       --enable-shared --disable-static --disable-nls \
-                      CFLAGS="-O2 -std=gnu17"
+                      CFLAGS="-O2 -std=gnu17" \
+                      LDFLAGS="-Wl,--no-insert-timestamp -Wl,--image-base=0x1c0000000"
           make -j"$(nproc)"
           make install
 
+      # Fixed link time stamp and image base (an explicit base overrides libtool's
+      # --enable-auto-image-base) so the same sources give the same DLL bytes.
       # clock_gettime comes from winpthreads on MinGW. Offer the linker only the
       # static archive so zbar.dll does not import libwinpthread-1.dll.
       - name: Build ZBar (library only, no video)
@@ -85,7 +90,7 @@ jobs:
                       --with-libiconv-prefix="$PREFIX" \
                       CFLAGS="-O2 -std=gnu17" \
                       CPPFLAGS="-D__USE_MINGW_ANSI_STDIO=1 -I$PREFIX/include" \
-                      LDFLAGS="-L/tmp/pthread-static -L$PREFIX/lib -static-libgcc"
+                      LDFLAGS="-L/tmp/pthread-static -L$PREFIX/lib -static-libgcc -Wl,--no-insert-timestamp -Wl,--image-base=0x1a0000000"
           make -C zbar -j"$(nproc)"
 
       - name: Collect and verify
