@@ -46,6 +46,7 @@ jobs:
           gcc --version | sed -n 1p
           ld --version | sed -n 1p
           ldd --version | sed -n 1p
+          dpkg-query -W gcc-9 binutils libc6 libc6-dev make
 
       - name: Fetch and verify ZBar source
         run: |
