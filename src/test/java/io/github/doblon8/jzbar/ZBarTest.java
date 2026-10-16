@@ -2,12 +2,12 @@ package io.github.doblon8.jzbar;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ZBarTest {
 
     @Test
     void version() {
-        assertNotNull(ZBar.version(), "Version string should not be null");
+        assertEquals("0.23.93", ZBar.version(), "Bundled ZBar version");
     }
 }
