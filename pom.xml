@@ -64,7 +64,11 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.5</version>
                 <configuration>
-                    <argLine>--enable-native-access=io.github.doblon8.jzbar</argLine>
+                    <!-- java.library.path points at an empty dir so System.loadLibrary("zbar")
+                    cannot find a system ZBar and the tests use the bundled natives -->
+                    <argLine>--enable-native-access=io.github.doblon8.jzbar
+                        -Djava.library.path=${project.build.directory}/no-system-libs
+                    </argLine>
                 </configuration>
             </plugin>
         </plugins>
