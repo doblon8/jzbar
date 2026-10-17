@@ -7,10 +7,8 @@
 # Usage: native/build-windows-x64.sh [output-dir]    (default: <repo>/dist)
 set -euo pipefail
 
-ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-OUT=${1:-$ROOT/dist}
-mkdir -p "$OUT"
-OUT=$(cd "$OUT" && pwd)
+. "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+OUT=$(resolve_out "${1:-$ROOT/dist}")
 
 [ "${MSYSTEM:-}" = UCRT64 ] || { echo "FAIL: run inside an MSYS2 UCRT64 shell" >&2; exit 1; }
 
@@ -19,9 +17,7 @@ PREFIX=/usr/local
 # strip would otherwise stamp the current time into the PE header
 export SOURCE_DATE_EPOCH=0
 
-# Pinned versions and hashes. tr strips the CRs that a Windows checkout may add.
-. <(tr -d '\r' < "$ROOT/native/sources.env")
-: "${ZBAR_VERSION:?}" "${ZBAR_SHA256:?}" "${ICONV_VERSION:?}" "${ICONV_SHA256:?}"
+load_sources ZBAR_VERSION ZBAR_SHA256 ICONV_VERSION ICONV_SHA256
 
 echo "== Toolchain versions"
 echo "runner image: ${ImageOS:-unknown} ${ImageVersion:-unknown}"
@@ -31,10 +27,8 @@ pacman -Q | grep -E '^(mingw-w64-ucrt-x86_64-|make )'
 
 echo "== Fetch and verify sources"
 mkdir -p /tmp/src && cd /tmp/src
-curl -fsSLo zbar.tar.bz2 "https://linuxtv.org/downloads/zbar/zbar-$ZBAR_VERSION.tar.bz2"
-curl -fsSLo libiconv.tar.gz "https://ftp.gnu.org/pub/gnu/libiconv/libiconv-$ICONV_VERSION.tar.gz"
-echo "$ZBAR_SHA256  zbar.tar.bz2" | sha256sum -c -
-echo "$ICONV_SHA256  libiconv.tar.gz" | sha256sum -c -
+fetch_zbar
+fetch_iconv
 tar xjf zbar.tar.bz2
 tar xzf libiconv.tar.gz
 

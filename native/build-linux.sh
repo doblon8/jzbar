@@ -9,14 +9,9 @@
 # Usage: native/build-linux.sh [output-dir]    (default: <repo>/dist)
 set -euo pipefail
 
-ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-OUT=${1:-$ROOT/dist}
-mkdir -p "$OUT"
-OUT=$(cd "$OUT" && pwd)
-
-# Pinned versions and hashes. tr strips the CRs that a Windows checkout may add.
-. <(tr -d '\r' < "$ROOT/native/sources.env")
-: "${ZBAR_VERSION:?}" "${ZBAR_SHA256:?}"
+. "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+OUT=$(resolve_out "${1:-$ROOT/dist}")
+load_sources ZBAR_VERSION ZBAR_SHA256
 
 echo "== Toolchain versions"
 uname -m
@@ -27,8 +22,7 @@ dpkg-query -W gcc-9 binutils libc6 libc6-dev make
 
 echo "== Fetch and verify ZBar source"
 mkdir -p /tmp/src && cd /tmp/src
-curl -fsSLo zbar.tar.bz2 "https://linuxtv.org/downloads/zbar/zbar-$ZBAR_VERSION.tar.bz2"
-echo "$ZBAR_SHA256  zbar.tar.bz2" | sha256sum -c -
+fetch_zbar
 tar xjf zbar.tar.bz2
 
 echo "== Build ZBar (library only, no video)"

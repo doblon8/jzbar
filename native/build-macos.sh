@@ -10,13 +10,13 @@
 # defaulting to the machine's own.
 set -euo pipefail
 
-ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-OUT=${1:-$ROOT/dist}
-mkdir -p "$OUT"
-OUT=$(cd "$OUT" && pwd)
+. "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+OUT=$(resolve_out "${1:-$ROOT/dist}")
 
 export MACOSX_DEPLOYMENT_TARGET=12.0
 EXPECT_ARCH=${EXPECT_ARCH:-$(uname -m)}
+
+load_sources ZBAR_VERSION ZBAR_SHA256
 
 # Pinned versions and hashes. tr strips the CRs that a Windows checkout may add.
 # A temp file instead of `. <(...)`: sourcing a process substitution is unreliable
@@ -36,8 +36,7 @@ clang --version | sed -n 1p
 
 echo "== Fetch and verify ZBar source"
 mkdir -p /tmp/src && cd /tmp/src
-curl -fsSLo zbar.tar.bz2 "https://linuxtv.org/downloads/zbar/zbar-$ZBAR_VERSION.tar.bz2"
-echo "$ZBAR_SHA256  zbar.tar.bz2" | shasum -a 256 -c -
+fetch_zbar
 tar xjf zbar.tar.bz2
 
 echo "== Build ZBar (library only, no video)"
