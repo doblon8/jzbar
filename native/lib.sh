@@ -37,8 +37,15 @@ sha256_check() {
 }
 
 # fetch_verify URL SHA256 FILE: download into the current directory and verify.
+# With NATIVE_SOURCES_DIR set (an absolute path), the file is copied from that
+# directory instead, for example the sources/ directory of the source bundle.
+# The hash is checked either way.
 fetch_verify() {
-  curl -fsSLo "$3" "$1"
+  if [ -n "${NATIVE_SOURCES_DIR:-}" ]; then
+    cp "$NATIVE_SOURCES_DIR/$(basename "$1")" "$3"
+  else
+    curl -fsSLo "$3" "$1"
+  fi
   sha256_check "$2" "$3"
 }
 
