@@ -89,4 +89,52 @@ if strings -a -f *.dll | grep -iE '\.pdb|/tmp/|/home/|/d/a/|runner|D:\\|Users'; 
   echo "FAIL: build path or username found in binaries"; exit 1
 fi
 
+# record the toolchain information
+echo "== Record toolchain"
+: > "$OUT/toolchain.txt"
+pacman -Q | sort > "$OUT/packages.txt"
+
+# record_pkg PREFIX PACKAGE: name, version and license of an installed package.
+record_pkg() {
+  kv "$1.package" "$2"
+  kv "$1.version" "$(pacman -Q "$2" | awk '{print $2}')"
+  kv "$1.license" "$(pacman -Qi "$2" | sed -n 's/^Licenses *: *//p')"
+}
+
+# record_static GROUP FILE...: owner package of files that can be linked
+# statically, plus the hashes of its license files. Fails if the files
+# have different owners.
+record_static() {
+  local group=$1 owner= o p f
+  shift
+  for f in "$@"; do
+    p=$(gcc -print-file-name="$f")
+    [ -e "$p" ] || { echo "FAIL: gcc does not find $f" >&2; exit 1; }
+    o=$(pacman -Qoq "$(cygpath -u "$p")")
+    if [ -z "$owner" ]; then
+      owner=$o
+    elif [ "$owner" != "$o" ]; then
+      echo "FAIL: files of group $group have different owners ($owner, $o)" >&2; exit 1
+    fi
+  done
+  record_pkg "static.$group" "$owner"
+  kv "static.$group.files" "$*"
+  pacman -Ql "$owner" | awk '{print $2}' | grep -E '/share/licenses/.+[^/]$' \
+    | while read -r f; do
+        kv "notice.$group.$(basename "$f").sha256" "$(sha256sum "$f" | awk '{print $1}')"
+      done
+}
+
+kv machine "$(uname -m)"
+kv runner.image "${ImageOS:-unknown} ${ImageVersion:-unknown}"
+record_pkg tool.gcc mingw-w64-ucrt-x86_64-gcc
+record_pkg tool.binutils mingw-w64-ucrt-x86_64-binutils
+record_pkg tool.headers mingw-w64-ucrt-x86_64-headers
+record_pkg tool.pkgconf mingw-w64-ucrt-x86_64-pkgconf
+record_pkg tool.make make
+record_static crt libmingw32.a libmingwex.a libmoldname.a crt2.o dllcrt2.o
+record_static gcc libgcc.a libgcc_eh.a crtbegin.o crtend.o
+record_static winpthreads libwinpthread.a
+
+# show the SHA256 of the built libraries for verification
 sha256sum *.dll

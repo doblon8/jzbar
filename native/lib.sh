@@ -43,9 +43,25 @@ fetch_verify() {
 }
 
 # Pinned upstream tarballs, downloaded into the current directory.
-fetch_zbar() {
-  fetch_verify "https://linuxtv.org/downloads/zbar/zbar-$ZBAR_VERSION.tar.bz2" "$ZBAR_SHA256" zbar.tar.bz2
+zbar_url() { echo "https://linuxtv.org/downloads/zbar/zbar-$ZBAR_VERSION.tar.bz2"; }
+iconv_url() { echo "https://ftp.gnu.org/pub/gnu/libiconv/libiconv-$ICONV_VERSION.tar.gz"; }
+
+fetch_zbar() { fetch_verify "$(zbar_url)" "$ZBAR_SHA256" zbar.tar.bz2; }
+fetch_iconv() { fetch_verify "$(iconv_url)" "$ICONV_SHA256" libiconv.tar.gz; }
+
+# sha256_of FILE: print the SHA-256 of FILE.
+sha256_of() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$1" | awk '{print $1}'
+  else
+    shasum -a 256 "$1" | awk '{print $1}'
+  fi
 }
-fetch_iconv() {
-  fetch_verify "https://ftp.gnu.org/pub/gnu/libiconv/libiconv-$ICONV_VERSION.tar.gz" "$ICONV_SHA256" libiconv.tar.gz
+
+# kv KEY VALUE: append KEY=VALUE to $OUT/toolchain.txt (single-line values only).
+kv() {
+  case "$2" in
+    *$'\n'*) echo "FAIL: multi-line value for $1" >&2; exit 1 ;;
+  esac
+  printf '%s=%s\n' "$1" "$2" >> "$OUT/toolchain.txt"
 }

@@ -65,5 +65,28 @@ if strings -a libzbar.so | grep -E '/home/|/tmp/|/root/|/__w/|/github/|runner'; 
   echo "FAIL: build path or username found in binary"; exit 1
 fi
 
-echo "Highest glibc symbol version required: $(objdump -T libzbar.so | grep -o 'GLIBC_[0-9.]*' | sort -Vu | tail -1)"
+glibc_max=$(objdump -T libzbar.so | grep -o 'GLIBC_[0-9.]*' | sort -Vu | tail -1)
+echo "Highest glibc symbol version required: $glibc_max"
+
+# record the toolchain information
+echo "== Record toolchain"
+: > "$OUT/toolchain.txt"
+dpkg-query -W | sort > "$OUT/packages.txt"
+
+record_deb() { # PREFIX PACKAGE
+  kv "$1.package" "$2"
+  kv "$1.version" "$(dpkg-query -W -f='${Version}' "$2")"
+}
+
+kv machine "$(uname -m)"
+[ -z "${ImageVersion:-}" ] || kv runner.image "${ImageOS:-unknown} $ImageVersion"
+kv os.name "$(. /etc/os-release && echo "$PRETTY_NAME")"
+record_deb tool.gcc gcc-9
+record_deb tool.binutils binutils
+record_deb tool.libc6 libc6
+record_deb tool.libc6-dev libc6-dev
+record_deb tool.make make
+kv out.glibc_max "$glibc_max"
+
+# show the hash of the built library for verification
 sha256sum libzbar.so

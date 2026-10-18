@@ -91,4 +91,19 @@ if strings -a libzbar.dylib | grep -E '/Users/|/home/|/tmp/|/private/|/Volumes/|
 fi
 
 echo "arch $arch, minos $minos"
+
+# record the toolchain information
+echo "== Record toolchain"
+: > "$OUT/toolchain.txt"
+kv machine "$(uname -m)"
+kv runner.image "${ImageOS:-unknown} ${ImageVersion:-unknown}"
+kv tool.macos.version "$(sw_vers -productVersion)"
+kv tool.xcode.version "$(xcodebuild -version | sed -n 1p)"
+kv tool.xcode.build "$(xcodebuild -version | sed -n 's/^Build version //p')"
+kv tool.sdk.version "$(xcrun --show-sdk-version)"
+kv tool.clang.version "$(clang --version | sed -n 1p)"
+kv out.minos "$minos"
+kv out.arch "$arch"
+
+# show the hash of the built library for verification
 shasum -a 256 libzbar.dylib
