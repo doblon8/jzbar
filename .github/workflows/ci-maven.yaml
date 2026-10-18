@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -25,3 +28,11 @@ jobs:
 
     - name: Build with Maven
       run: mvn -B package
+
+  native-manifest:
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Check native files against manifests
+      run: bash native/check-manifests.sh
