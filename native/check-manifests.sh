@@ -94,6 +94,23 @@ present=$(cd "$RES" && find . -type f \( -name '*.so' -o -name '*.dylib' -o -nam
 unlisted=$(comm -23 <(printf '%s\n' "$present") <(sort -u "$listed"))
 [ -z "$unlisted" ] || err "not in any manifest: $unlisted"
 
+# check that all license files are present and match the expected SHA256
+echo "== licenses"
+[ -f "$LIC/SHA256SUMS" ] || err "native/licenses/SHA256SUMS is missing"
+if [ -f "$LIC/SHA256SUMS" ]; then
+  (cd "$LIC" && sha256sum -c --quiet SHA256SUMS) || err "native/licenses does not match SHA256SUMS"
+  unlisted=$(cd "$LIC" && find . -type f ! -name SHA256SUMS | sed 's|^\./||' | sort \
+             | comm -23 - <(sed 's/^[0-9a-f]*  //' "$LIC/SHA256SUMS" | sort))
+  [ -z "$unlisted" ] || err "not in SHA256SUMS: $unlisted"
+fi
+for f in zbar/COPYING zbar/LICENSE.md libiconv/COPYING.LIB xiph-ogg/COPYING \
+         mingw-w64-crt/COPYING mingw-w64-crt/COPYING.MinGW-w64-runtime.txt \
+         mingw-w64-crt/COPYING.MinGW-w64.txt gcc-runtime/COPYING3 \
+         gcc-runtime/COPYING.RUNTIME winpthreads/COPYING; do
+  [ -f "$LIC/$f" ] || err "required license file missing: native/licenses/$f"
+done
+
+# report the result
 if [ "$errors" -gt 0 ]; then
   echo "$errors problem(s) found" >&2
   exit 1
