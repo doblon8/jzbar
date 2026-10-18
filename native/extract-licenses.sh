@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 # Extract the license texts of the pinned ZBar and libiconv tarballs into
 # native/licenses/ and regenerate native/licenses/SHA256SUMS.
+#
+# SHA256SUMS covers every file in native/licenses/ that git knows about
+# (tracked, or untracked but not ignored), including the texts added by hand.
+# Needs git, curl and tar.
+#
 # Usage: native/extract-licenses.sh
 set -euo pipefail
 
@@ -30,9 +35,12 @@ cp "libiconv-$ICONV_VERSION/COPYING.LIB" "$LIC/libiconv/COPYING.LIB"
 # libcharset ships the same text; fail if an upgrade makes it differ
 cmp "libiconv-$ICONV_VERSION/COPYING.LIB" "libiconv-$ICONV_VERSION/libcharset/COPYING.LIB"
 
-# checksums of everything under native/licenses
+# Checksums of everything under native/licenses that git knows about, so editor
+# backup files and other ignored files never end up in SHA256SUMS.
 cd "$LIC"
-list=$(find . -type f ! -name SHA256SUMS | sed 's|^\./||' | LC_ALL=C sort)
+list=$(git ls-files --cached --others --exclude-standard -- . | { grep -vx SHA256SUMS || true; } | LC_ALL=C sort)
+[ -n "$list" ] || { echo "FAIL: no license files found in native/licenses" >&2; exit 1; }
+
 : > SHA256SUMS
 while IFS= read -r f; do
   printf '%s  %s\n' "$(sha256_of "$f")" "$f" >> SHA256SUMS
