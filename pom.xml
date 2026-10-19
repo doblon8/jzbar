@@ -58,6 +58,27 @@
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>native/licenses</directory>
+                <targetPath>META-INF/licenses</targetPath>
+                <excludes>
+                    <exclude>README.md</exclude>
+                    <exclude>SHA256SUMS</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <directory>${project.basedir}</directory>
+                <targetPath>META-INF</targetPath>
+                <includes>
+                    <include>LICENSE</include>
+                    <include>THIRD-PARTY-NOTICES</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
