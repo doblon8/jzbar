@@ -25,13 +25,14 @@ load_sources ZBAR_VERSION ZBAR_SHA256 ICONV_VERSION ICONV_SHA256
 
 tar --version | grep -q 'GNU tar' || fail "GNU tar is required"
 
-# What goes into the bundle, besides the upstream tarballs. Add LICENSE and
-# THIRD-PARTY-NOTICES here when they exist.
+# What goes into the bundle, besides the upstream tarballs.
 FILES=(
   native
   .github/workflows/native-windows-x64.yaml
   .github/workflows/native-linux.yaml
   .github/workflows/native-macos.yaml
+  LICENSE
+  THIRD-PARTY-NOTICES
   BUILDING.md
 )
 
