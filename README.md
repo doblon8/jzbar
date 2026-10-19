@@ -67,7 +67,8 @@ void main() throws WriterException, ZBarException {
 
 ## License
 
-This project is licensed under the GNU LGPL 2.1, the same as the `ZBar` library.
+jzbar is free software, licensed under the GNU Lesser General Public License, version 2.1 only (SPDX: `LGPL-2.1-only`).
 
-See the [LICENSE](./LICENSE) file for details.
+Copyright (C) 2025 doblon8 and contributors
 
+See the [LICENSE](./LICENSE) file for the license text.
