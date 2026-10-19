@@ -40,3 +40,6 @@ jobs:
 
     - name: Check native files against manifests
       run: bash native/check-manifests.sh
+
+    - name: Check THIRD-PARTY-NOTICES is up to date
+      run: bash native/make-notices.sh && git diff --exit-code -- THIRD-PARTY-NOTICES
