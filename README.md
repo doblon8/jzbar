@@ -71,4 +71,4 @@ jzbar is free software, licensed under the GNU Lesser General Public License, ve
 
 Copyright (C) 2025 doblon8 and contributors
 
-See the [LICENSE](./LICENSE) file for the license text.
+See the [LICENSE](./LICENSE) file for the license text, and [THIRD-PARTY-NOTICES](./THIRD-PARTY-NOTICES) for the licenses of the bundled native libraries.
