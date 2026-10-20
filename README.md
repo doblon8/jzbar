@@ -72,3 +72,5 @@ jzbar is free software, licensed under the GNU Lesser General Public License, ve
 Copyright (C) 2025 doblon8 and contributors
 
 See the [LICENSE](./LICENSE) file for the license text, and [THIRD-PARTY-NOTICES](./THIRD-PARTY-NOTICES) for the licenses of the bundled native libraries.
+
+jzbar bundles prebuilt native ZBar libraries. To use your own build instead, put `libzbar.so`, `libzbar.dylib` or `zbar.dll` (with `libiconv-2.dll`) in a directory on `java.library.path`. [BUILDING.md](./BUILDING.md) explains how to rebuild the bundled libraries from the source bundle published with each release.
