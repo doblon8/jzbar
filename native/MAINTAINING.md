@@ -7,11 +7,12 @@ To build a replacement library for your own use, see `BUILDING.md` instead.
 
 | Path | Purpose |
 | --- | --- |
-| `native/sources.env` | Pinned ZBar and libiconv versions and SHA-256 hashes. Read by every script. |
+| `native/sources.env` | Pinned ZBar and libiconv versions and SHA-256 hashes, plus `SOURCE_BUNDLE_URL`, the published location of this release's source bundle. Read by every script. |
 | `native/build-windows-x64.sh`, `build-linux.sh`, `build-macos.sh` | The builds. Run by the workflows in `.github/workflows/native-*.yaml`. |
 | `native/lib.sh` | Helpers shared by the scripts (not run directly). With `NATIVE_SOURCES_DIR` set, the build scripts take the upstream tarballs from that directory instead of downloading them. |
 | `native/write-manifest.sh` | Writes `native/manifest/<platform>.manifest` from a workflow artifact. |
 | `native/check-manifests.sh` | Checks that the committed binaries and license texts match the manifests and `SHA256SUMS`. Runs in CI. |
+| `native/make-notices.sh` | Generates `THIRD-PARTY-NOTICES` from the manifests and `SOURCE_BUNDLE_URL`. CI regenerates it and fails on any difference. |
 | `native/manifest/` | One manifest per platform: sources, toolchain, output hashes, run URL. |
 | `native/extract-licenses.sh` | Regenerates `native/licenses/zbar/`, `native/licenses/libiconv/` and `native/licenses/SHA256SUMS` from the pinned tarballs. |
 | `native/licenses/` | License texts of what is linked into the binaries, with `SHA256SUMS` and a `README.md` saying where each text came from. |
@@ -60,9 +61,9 @@ Each manifest lists its binaries by path relative to `src/main/resources/native`
    sha256sum run-<run id>-logs.zip
 ```
 8. **Update the test.** Change the expected `ZBar.version()` string in `ZBarTest`.
-9. **Licenses.** Run `native/extract-licenses.sh` to replace the texts taken from the tarballs and regenerate `native/licenses/SHA256SUMS`. Read the diff: a changed `COPYING` in ZBar can mean a new notice or exception. If it mentions code under another license, add its text by hand and record where it came from in `native/licenses/README.md`. Regenerate the notices when the generator exists. *(To be completed in Phase 3.)*
+9. **Licenses.** Run `native/extract-licenses.sh` to replace the texts taken from the tarballs and regenerate `native/licenses/SHA256SUMS`. Read the diff: a changed `COPYING` in ZBar can mean a new notice or exception. If it mentions code under another license, add its text by hand and record where it came from in `native/licenses/README.md`. Then run `native/make-notices.sh` to regenerate `THIRD-PARTY-NOTICES`.
 10. **Check.** Run `native/check-manifests.sh` locally, then push and wait for CI. The test matrix runs on all five platforms.
-11. **Commit** the binaries, the manifests and the license changes together.
+11. 11. **Commit** the binaries, the manifests, the license changes and `THIRD-PARTY-NOTICES` together.
 
 ## Rebuilding without changing versions
 
@@ -82,8 +83,19 @@ Use this when you want to know whether the committed binaries still reproduce, f
 
 ## Source bundle
 
-`native/make-source-bundle.sh VERSION [output-dir]` builds `jzbar-native-sources-VERSION.tar.gz` from the committed state of the repository: the pinned ZBar and libiconv tarballs (checked against `sources.env`), `native/`, the three native workflows, `BUILDING.md` and `BUNDLE-INFO.txt` (version and commit). It fails if those paths have uncommitted changes.
+`native/make-source-bundle.sh VERSION [output-dir]` builds `jzbar-native-sources-VERSION.tar.gz` from the committed state of the repository: the pinned ZBar and libiconv tarballs (checked against `sources.env`), `native/`, the three native workflows, `LICENSE`, `THIRD-PARTY-NOTICES`, `BUILDING.md` and `BUNDLE-INFO.txt` (version and commit). It fails if those paths have uncommitted changes.
 
 - The same commit gives the same bundle, so you can build it twice and compare hashes.
 - To build from a bundle without network access to the upstream sites, unpack it and set `NATIVE_SOURCES_DIR=<bundle>/sources` before running a build script.
 - Publish it with the release, next to the JAR, and keep it with the logs from step 7.
+
+## Releasing
+
+1. Set the release version in `pom.xml`.
+2. Set `SOURCE_BUNDLE_URL` in `native/sources.env` to `https://github.com/doblon8/jzbar/releases/download/v<version>/jzbar-native-sources-<version>.tar.gz`, then run `native/make-notices.sh`. CI fails if the URL and the pom version disagree.
+3. Commit, push and wait for CI to pass on `main`.
+4. Run `mvn clean install` and test the JAR in a consumer project before tagging.
+5. From the clean tree, run `native/make-source-bundle.sh <version> /tmp/out`. Keep its SHA-256 for the release notes.
+6. Tag that commit as `v<version>` and push the tag.
+7. Create the GitHub release and attach the bundle and, if the binaries changed in this release, the log archives from step 7 of "Upgrading ZBar or libiconv". Save the logs before they expire, 90 days after each run.
+8. Publish to Maven Central.

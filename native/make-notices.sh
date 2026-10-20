@@ -51,6 +51,7 @@ files_of() {
 }
 
 expect source.zbar.version 0.23.93
+load_sources SOURCE_BUNDLE_URL
 zbar_ver=$(one source.zbar.version)
 zbar_url=$(one source.zbar.url)
 zbar_sha=$(one source.zbar.sha256)
@@ -66,6 +67,13 @@ THIRD-PARTY NOTICES
 jzbar is licensed under the GNU Lesser General Public License, version 2.1
 only (see LICENSE). Its JAR bundles prebuilt native libraries built from the
 third-party sources below. Full license texts are in META-INF/licenses/.
+
+Source code
+  The ZBar and libiconv source tarballs, the build scripts and the build
+  manifests used to produce the native libraries in this JAR are available at:
+    $SOURCE_BUNDLE_URL
+  They will remain available there for at least three years after this
+  version is released.
 
 ZBar $zbar_ver
   License: LGPL-2.1-or-later (META-INF/licenses/zbar/)

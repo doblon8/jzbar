@@ -4,6 +4,13 @@ jzbar is licensed under the GNU Lesser General Public License, version 2.1
 only (see LICENSE). Its JAR bundles prebuilt native libraries built from the
 third-party sources below. Full license texts are in META-INF/licenses/.
 
+Source code
+  The ZBar and libiconv source tarballs, the build scripts and the build
+  manifests used to produce the native libraries in this JAR are available at:
+    https://github.com/doblon8/jzbar/releases/download/v0.4.1/jzbar-native-sources-0.4.1.tar.gz
+  They will remain available there for at least three years after this
+  version is released.
+
 ZBar 0.23.93
   License: LGPL-2.1-or-later (META-INF/licenses/zbar/)
   Contained in: linux/aarch64/libzbar.so, linux/x64/libzbar.so, osx/aarch64/libzbar.dylib, osx/x64/libzbar.dylib, windows/x64/zbar.dll

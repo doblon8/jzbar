@@ -38,11 +38,24 @@ jobs:
       with:
         persist-credentials: false
 
+    - name: Set up JDK 25
+      uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+      with:
+        distribution: 'temurin'
+        java-version: '25'
+
     - name: Check native files against manifests
       run: bash native/check-manifests.sh
 
     - name: Check THIRD-PARTY-NOTICES is up to date
       run: bash native/make-notices.sh && git diff --exit-code -- THIRD-PARTY-NOTICES
+
+    - name: Check the source offer matches the release version
+      run: |
+        url=$(sed -n 's/^SOURCE_BUNDLE_URL=//p' native/sources.env)
+        ver=$(mvn -B -q help:evaluate -Dexpression=project.version -DforceStdout)
+        expected="https://github.com/doblon8/jzbar/releases/download/v$ver/jzbar-native-sources-$ver.tar.gz"
+        [ "$url" = "$expected" ] || { echo "FAIL: SOURCE_BUNDLE_URL is '$url', expected '$expected'" >&2; exit 1; }
 
   source-bundle:
     runs-on: ubuntu-24.04
