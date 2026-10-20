@@ -45,7 +45,14 @@ jobs:
       run: bash native/make-notices.sh && git diff --exit-code -- THIRD-PARTY-NOTICES
 
   native-rebuild-linux:
-    runs-on: ubuntu-24.04
+    name: native-rebuild-linux (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { arch: x64, runner: ubuntu-24.04 }
+          - { arch: aarch64, runner: ubuntu-24.04-arm }
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
@@ -69,7 +76,7 @@ jobs:
             native/build-linux.sh /src/out'
 
     - name: Compare with the committed binary
-      run: cmp "$RUNNER_TEMP/jzbar-native-sources-ci/out/libzbar.so" src/main/resources/native/linux/x64/libzbar.so
+      run: cmp "$RUNNER_TEMP/jzbar-native-sources-ci/out/libzbar.so" "src/main/resources/native/linux/${{ matrix.arch }}/libzbar.so"
 
     - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
       with:
