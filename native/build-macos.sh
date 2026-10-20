@@ -18,15 +18,6 @@ EXPECT_ARCH=${EXPECT_ARCH:-$(uname -m)}
 
 load_sources ZBAR_VERSION ZBAR_SHA256
 
-# Pinned versions and hashes. tr strips the CRs that a Windows checkout may add.
-# A temp file instead of `. <(...)`: sourcing a process substitution is unreliable
-# in the bash 3.2 that ships with macOS.
-envfile=$(mktemp)
-tr -d '\r' < "$ROOT/native/sources.env" > "$envfile"
-. "$envfile"
-rm -f "$envfile"
-: "${ZBAR_VERSION:?}" "${ZBAR_SHA256:?}"
-
 echo "== Toolchain versions"
 uname -m
 sw_vers -productVersion
