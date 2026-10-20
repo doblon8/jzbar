@@ -108,3 +108,57 @@ jobs:
         mvn -B test
         -Djzbar.test.libdir="$RUNNER_TEMP/jzbar-native-sources-ci/out"
         -Djzbar.test.requireUserLib=true
+
+  native-rebuild-macos:
+    name: native-rebuild-macos (${{ matrix.arch }})
+    needs: source-bundle
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { arch: x64, runner: macos-15-intel, lipo_arch: x86_64 }
+          - { arch: aarch64, runner: macos-15, lipo_arch: arm64 }
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+
+    - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      with:
+        name: source-bundle
+        path: ${{ runner.temp }}
+
+    - name: Unpack the source bundle
+      run: tar -xzf "$RUNNER_TEMP/jzbar-native-sources-ci.tar.gz" -C "$RUNNER_TEMP"
+
+    - name: Rebuild libzbar.dylib from the bundle
+      env:
+        EXPECT_ARCH: ${{ matrix.lipo_arch }}
+      run: |
+        cd "$RUNNER_TEMP/jzbar-native-sources-ci"
+        NATIVE_SOURCES_DIR="$PWD/sources" bash native/build-macos.sh "$PWD/out"
+
+    - name: Compare with the committed binary
+      run: |
+        out="$RUNNER_TEMP/jzbar-native-sources-ci/out"
+        manifest="native/manifest/macos-${{ matrix.arch }}.manifest"
+        grep '^tool\.' "$manifest" | LC_ALL=C sort > "$RUNNER_TEMP/tools.expected"
+        grep '^tool\.' "$out/toolchain.txt" | LC_ALL=C sort > "$RUNNER_TEMP/tools.actual"
+        if diff "$RUNNER_TEMP/tools.expected" "$RUNNER_TEMP/tools.actual"; then
+          cmp "$out/libzbar.dylib" "src/main/resources/native/osx/${{ matrix.arch }}/libzbar.dylib"
+        else
+          echo "::warning::Runner toolchain differs from the manifest; skipping the binary comparison"
+        fi
+
+    - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+      with:
+        distribution: 'temurin'
+        java-version: '25'
+        cache: maven
+
+    - name: Test with the rebuilt library as a user-supplied one
+      run: >
+        mvn -B test
+        -Djzbar.test.libdir="$RUNNER_TEMP/jzbar-native-sources-ci/out"
+        -Djzbar.test.requireUserLib=true
