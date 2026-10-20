@@ -40,6 +40,7 @@
         <maven.compiler.source>25</maven.compiler.source>
         <maven.compiler.target>25</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	<jzbar.test.libdir>${project.build.directory}/no-system-libs</jzbar.test.libdir>
     </properties>
 
     <dependencies>
@@ -88,7 +89,7 @@
                     <!-- java.library.path points at an empty dir so System.loadLibrary("zbar")
                     cannot find a system ZBar and the tests use the bundled natives -->
                     <argLine>--enable-native-access=io.github.doblon8.jzbar
-                        -Djava.library.path=${project.build.directory}/no-system-libs
+                        -Djava.library.path=${jzbar.test.libdir}
                     </argLine>
                 </configuration>
             </plugin>
