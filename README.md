@@ -29,6 +29,9 @@ import io.github.doblon8.jzbar.utils.ImageUtils;
 import io.github.doblon8.jzbar.utils.QRCodeGenerator;
 
 void main() throws WriterException, ZBarException {
+
+    System.out.println("ZBar version: " + ZBar.version());
+
     var img = QRCodeGenerator.generateQRCodeImage("Hello, World!", 100, 4);
     var data = ImageUtils.convertToY800(img);
 
@@ -59,6 +62,7 @@ void main() throws WriterException, ZBarException {
     }
 }
 
+// ZBar version: 0.23.93
 // Scanned data: Hello, World!
 // Symbol type: QR-Code
 // Symbol quality: 1
