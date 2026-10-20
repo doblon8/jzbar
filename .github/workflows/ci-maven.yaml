@@ -43,3 +43,42 @@ jobs:
 
     - name: Check THIRD-PARTY-NOTICES is up to date
       run: bash native/make-notices.sh && git diff --exit-code -- THIRD-PARTY-NOTICES
+
+  native-rebuild-linux:
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+
+    - name: Make and unpack the source bundle
+      run: |
+        bash native/make-source-bundle.sh ci "$RUNNER_TEMP/bundle"
+        tar -xzf "$RUNNER_TEMP/bundle/jzbar-native-sources-ci.tar.gz" -C "$RUNNER_TEMP"
+
+    - name: Rebuild libzbar.so from the bundle
+      run: |
+        docker run --rm \
+          -v "$RUNNER_TEMP/jzbar-native-sources-ci:/src" -w /src \
+          -e NATIVE_SOURCES_DIR=/src/sources -e DEBIAN_FRONTEND=noninteractive \
+          ubuntu:20.04@sha256:8feb4d8ca5354def3d8fce243717141ce31e2c428701f6682bd2fafe15388214 \
+          bash -ec '
+            apt-get update
+            apt-get install -y --no-install-recommends \
+              build-essential ca-certificates curl bzip2 pkg-config
+            native/build-linux.sh /src/out'
+
+    - name: Compare with the committed binary
+      run: cmp "$RUNNER_TEMP/jzbar-native-sources-ci/out/libzbar.so" src/main/resources/native/linux/x64/libzbar.so
+
+    - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+      with:
+        distribution: 'temurin'
+        java-version: '25'
+        cache: maven
+
+    - name: Test with the rebuilt library as a user-supplied one
+      run: >
+        mvn -B test
+        -Djzbar.test.libdir="$RUNNER_TEMP/jzbar-native-sources-ci/out"
+        -Djzbar.test.requireUserLib=true
