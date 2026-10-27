@@ -29,7 +29,7 @@ echo "== Fetch and verify sources"
 mkdir -p /tmp/src && cd /tmp/src
 fetch_zbar
 fetch_iconv
-tar xjf zbar.tar.gz
+tar xzf zbar.tar.gz
 tar xzf libiconv.tar.gz
 
 echo "== Build libiconv (shared)"

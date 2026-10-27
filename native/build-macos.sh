@@ -28,7 +28,7 @@ clang --version | sed -n 1p
 echo "== Fetch and verify ZBar source"
 mkdir -p /tmp/src && cd /tmp/src
 fetch_zbar
-tar xjf zbar.tar.gz
+tar xzf zbar.tar.gz
 
 echo "== Build ZBar (library only, no video)"
 # No libiconv build: macOS ships /usr/lib/libiconv.2.dylib. The build is
