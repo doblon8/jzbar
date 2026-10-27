@@ -16,7 +16,7 @@ Windows (x64): in an MSYS2 UCRT64 shell with `mingw-w64-ucrt-x86_64-gcc mingw-w6
 
     NATIVE_SOURCES_DIR=$PWD/sources native/build-windows-x64.sh out
 
-macOS (x64 or aarch64; build on a machine of the target architecture; needs the Xcode command line tools and curl):
+macOS (x64 or aarch64; build on a machine of the target architecture; needs the Xcode command line tools, curl and `/usr/bin/python3`; the script installs meson and ninja in a temporary virtualenv from `native/meson-requirements.txt` and `native/ninja-requirements.txt`, so it needs network access):
 
     NATIVE_SOURCES_DIR=$PWD/sources native/build-macos.sh out
 

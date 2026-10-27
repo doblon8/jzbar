@@ -2,8 +2,10 @@
 # Build libzbar.dylib (macOS, x86_64 or arm64) from the pinned upstream source.
 #
 # Requires the Xcode command line tools (clang, strip, codesign, install_name_tool,
-# otool, lipo) and curl. macOS provides /usr/lib/libiconv.2.dylib, so libiconv is
-# not built.
+# otool, lipo, /usr/bin/python3) and curl. macOS provides /usr/lib/libiconv.2.dylib,
+# so libiconv is not built. meson and ninja are installed into a temporary virtualenv
+# from the hash-pinned native/meson-requirements.txt and native/ninja-requirements.txt
+# (ZBar 0.23.94+ needs meson >= 0.61).
 #
 # Usage: native/build-macos.sh [output-dir]    (default: <repo>/dist)
 # The architecture checked in the result is $EXPECT_ARCH (x86_64 or arm64),
@@ -18,12 +20,23 @@ EXPECT_ARCH=${EXPECT_ARCH:-$(uname -m)}
 
 load_sources ZBAR_VERSION ZBAR_SHA256
 
+echo "== Install meson and ninja (hash-pinned)"
+/usr/bin/python3 -m venv --clear /tmp/build-venv
+/tmp/build-venv/bin/python -m pip install --disable-pip-version-check \
+    --require-hashes --only-binary=:all: --no-deps \
+    -r "$ROOT/native/meson-requirements.txt" \
+    -r "$ROOT/native/ninja-requirements.txt"
+export PATH="/tmp/build-venv/bin:$PATH"
+
 echo "== Toolchain versions"
 uname -m
 sw_vers -productVersion
 xcodebuild -version | sed -n 1p
 xcrun --show-sdk-version
 clang --version | sed -n 1p
+python --version
+meson --version
+ninja --version
 
 echo "== Fetch and verify ZBar source"
 mkdir -p /tmp/src && cd /tmp/src
@@ -31,25 +44,23 @@ fetch_zbar
 tar xzf zbar.tar.gz
 
 echo "== Build ZBar (library only, no video)"
-# No libiconv build: macOS ships /usr/lib/libiconv.2.dylib. The build is
-# small, so make runs serially and a compile error ends up at the log's end.
+# No libiconv build: macOS ships /usr/lib/libiconv.2.dylib. /usr is a harmless
+# prefix: nothing is installed, the library is copied from the build directory.
 cd "/tmp/src/zbar-$ZBAR_VERSION"
-./configure --enable-shared --disable-static \
-            --disable-video --disable-doc --disable-nls \
-            --without-jpeg --without-imagemagick --without-graphicsmagick \
-            --without-python --without-gtk --without-gir \
-            --without-qt --without-qt6 --without-java \
-            --without-xshm --without-xv --without-dbus --without-npapi \
-            --without-x \
-            CFLAGS="-O2"
-make -C zbar
+meson setup build --prefix=/usr --buildtype=plain -Dc_args=-O2 \
+    -Dlibrary_type=shared -Dvideo=false -Ddoc=false -Dnls=disabled \
+    -Djpeg=disabled -Dimagemagick=disabled -Dgraphicsmagick=disabled \
+    -Dpython=no -Dgtk=no -Dgir=false -Dqt=false -Dqt6=false -Djava=disabled \
+    -Dxshm=disabled -Dxv=disabled -Ddbus=disabled -Dnpapi=disabled \
+    -Dx11=disabled -Dbuild_tests=false
+meson compile -C build
 
 echo "== Collect and verify"
 export LC_ALL=C
-cp -L "/tmp/src/zbar-$ZBAR_VERSION/zbar/.libs/libzbar.dylib" "$OUT/libzbar.dylib"
+cp -L "/tmp/src/zbar-$ZBAR_VERSION/build/zbar/libzbar.dylib" "$OUT/libzbar.dylib"
 cd "$OUT"
 
-# libtool records an absolute install path; replace it. Stripping and
+# replace the build install path with @rpath. Stripping and
 # editing invalidate the signature, and arm64 refuses to load an
 # unsigned dylib, so re-sign ad hoc.
 strip -x libzbar.dylib
@@ -93,6 +104,9 @@ kv tool.xcode.version "$(xcodebuild -version | sed -n 1p)"
 kv tool.xcode.build "$(xcodebuild -version | sed -n 's/^Build version //p')"
 kv tool.sdk.version "$(xcrun --show-sdk-version)"
 kv tool.clang.version "$(clang --version | sed -n 1p)"
+kv tool.python.version "$(python --version | awk '{print $2}')"
+kv tool.meson.version "$(meson --version)"
+kv tool.ninja.version "$(ninja --version)"
 kv out.minos "$minos"
 kv out.arch "$arch"
 
