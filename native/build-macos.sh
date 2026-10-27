@@ -47,7 +47,17 @@ echo "== Build ZBar (library only, no video)"
 # No libiconv build: macOS ships /usr/lib/libiconv.2.dylib. /usr is a harmless
 # prefix: nothing is installed, the library is copied from the build directory.
 cd "/tmp/src/zbar-$ZBAR_VERSION"
+
+# Upstream hides internal symbols only on ELF (zbar/zbar.map, a --version-script used
+# only on Linux), so on macOS meson would export all of them. Reuse the same list of
+# exported names, with the leading underscore that Mach-O adds to C symbols.
+awk '/global:/{f=1; next} /local:/{f=0} f' zbar/zbar.map | tr -d ' \t;' | grep . \
+    | sed 's/^/_/' > /tmp/exports.txt || true
+[ -s /tmp/exports.txt ] || { echo "FAIL: no exported symbols found in zbar/zbar.map"; exit 1; }
+cat /tmp/exports.txt
+
 meson setup build --prefix=/usr --buildtype=plain -Dc_args=-O2 \
+    -Dc_link_args=-Wl,-exported_symbols_list,/tmp/exports.txt \
     -Dlibrary_type=shared -Dvideo=false -Ddoc=false -Dnls=disabled \
     -Djpeg=disabled -Dimagemagick=disabled -Dgraphicsmagick=disabled \
     -Dpython=no -Dgtk=no -Dgir=false -Dqt=false -Dqt6=false -Djava=disabled \
