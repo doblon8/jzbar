@@ -6,7 +6,7 @@ jzbar bundles prebuilt ZBar (and, on Windows, libiconv) binaries under `src/main
 
 Each release has `jzbar-native-sources-VERSION.tar.gz`: the pinned upstream tarballs (`sources/`), the build scripts (`native/`) and the CI workflows.
 
-Linux (Ubuntu 20.04, glibc 2.31, GCC 9.4; packages `build-essential ca-certificates curl bzip2 pkg-config`):
+Linux (Ubuntu 20.04, glibc 2.31, GCC 9.4; packages `build-essential ca-certificates curl pkg-config python3-pip ninja-build`; the script installs meson from `native/meson-requirements.txt`):
 
     tar xzf jzbar-native-sources-VERSION.tar.gz
     cd jzbar-native-sources-VERSION

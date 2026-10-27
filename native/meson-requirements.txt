@@ -1,0 +1,4 @@
+# Build tool for ZBar 0.23.94+ (needs meson >= 0.61; Ubuntu 20.04 ships 0.53).
+# Hash of meson-1.7.0-py3-none-any.whl from https://pypi.org/pypi/meson/1.7.0/json
+meson==1.7.0 \
+    --hash=sha256:ae3f12953045f3c7c60e27f2af1ad862f14dee125b4ed9bcb8a842a5080dbf85
