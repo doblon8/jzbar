@@ -33,7 +33,7 @@ tar xjf zbar.tar.bz2
 tar xzf libiconv.tar.gz
 
 echo "== Build libiconv (shared)"
-# -std=gnu17: libiconv 1.17 does not compile as C23 (GCC 15 default)
+# -std=gnu17: libiconv 1.17 does not compile as C23 (GCC 15 default); not re-tested with 1.19
 cd "/tmp/src/libiconv-$ICONV_VERSION"
 ./configure --prefix="$PREFIX" --build=$TRIPLET --host=$TRIPLET \
             --enable-shared --disable-static --disable-nls \
