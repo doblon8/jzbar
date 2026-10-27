@@ -2,7 +2,8 @@
 # Build zbar.dll and libiconv-2.dll (Windows x64) from the pinned upstream sources.
 #
 # Run inside an MSYS2 UCRT64 shell with these packages installed:
-#   mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-pkgconf make curl
+#   mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-pkgconf
+#   mingw-w64-ucrt-x86_64-meson mingw-w64-ucrt-x86_64-ninja make curl
 #
 # Usage: native/build-windows-x64.sh [output-dir]    (default: <repo>/dist)
 set -euo pipefail
@@ -43,32 +44,33 @@ make -j"$(nproc)"
 make install
 
 echo "== Build ZBar (library only, no video)"
-# Fixed link time stamp and image base (an explicit base overrides libtool's
-# --enable-auto-image-base) so the same sources give the same DLL bytes.
+# Fixed link time stamp and image base so the same sources give the same DLL bytes.
 # clock_gettime comes from winpthreads on MinGW. Offer the linker only the
 # static archive so zbar.dll does not import libwinpthread-1.dll.
+# meson and ninja are native Windows programs: give them Windows-style paths
+# (cygpath -m) and stop MSYS2 from converting the arguments a second time.
 mkdir -p /tmp/pthread-static
 cp /ucrt64/lib/libwinpthread.a /tmp/pthread-static/libwinpthread.a
 cp /ucrt64/lib/libwinpthread.a /tmp/pthread-static/libpthread.a
+PREFIX_WIN=$(cygpath -m "$PREFIX")
+PTHREAD_WIN=$(cygpath -m /tmp/pthread-static)
 cd "/tmp/src/zbar-$ZBAR_VERSION"
-./configure --prefix="$PREFIX" --build=$TRIPLET --host=$TRIPLET \
-            --enable-shared --disable-static \
-            --disable-video --disable-doc --disable-nls \
-            --without-jpeg --without-imagemagick --without-graphicsmagick \
-            --without-python --without-gtk --without-gir \
-            --without-qt --without-qt6 --without-java \
-            --without-xshm --without-xv --without-dbus --without-npapi \
-            --with-libiconv-prefix="$PREFIX" \
-            CFLAGS="-O2 -std=gnu17" \
-            CPPFLAGS="-D__USE_MINGW_ANSI_STDIO=1 -I$PREFIX/include" \
-            LDFLAGS="-L/tmp/pthread-static -L$PREFIX/lib -static-libgcc -Wl,--no-insert-timestamp -Wl,--image-base=0x1a0000000"
-make -C zbar -j"$(nproc)"
+MSYS2_ARG_CONV_EXCL='*' meson setup build --prefix=C:/zbar --buildtype=plain \
+    -Dc_args="-O2 -D__USE_MINGW_ANSI_STDIO=1 -I$PREFIX_WIN/include" \
+    -Dc_link_args="-L$PTHREAD_WIN -L$PREFIX_WIN/lib -static-libgcc -Wl,--no-insert-timestamp -Wl,--image-base=0x1a0000000" \
+    -Dlibrary_type=shared -Dvideo=false -Ddoc=false -Dnls=disabled \
+    -Djpeg=disabled -Dimagemagick=disabled -Dgraphicsmagick=disabled \
+    -Dpython=no -Dgtk=no -Dgir=false -Dqt=false -Dqt6=false -Djava=disabled \
+    -Dxshm=disabled -Dxv=disabled -Ddbus=disabled -Dnpapi=disabled \
+    -Dx11=disabled -Dbuild_tests=false
+grep -n -i 'iconv\|clock_gettime' build/meson-logs/meson-log.txt | head -30 || true
+meson compile -C build
 
 echo "== Collect and verify"
 export LC_ALL=C
 # zbar.dll is the name jzbar loads. libiconv-2.dll keeps its name
 # because zbar.dll imports it by that exact name.
-cp "/tmp/src/zbar-$ZBAR_VERSION/zbar/.libs/libzbar-0.dll" "$OUT/zbar.dll"
+cp "/tmp/src/zbar-$ZBAR_VERSION/build/zbar/libzbar-0.dll" "$OUT/zbar.dll"
 cp "$PREFIX/bin/libiconv-2.dll" "$OUT/"
 strip --strip-unneeded "$OUT"/*.dll
 cd "$OUT"
@@ -131,6 +133,8 @@ record_pkg tool.gcc mingw-w64-ucrt-x86_64-gcc
 record_pkg tool.binutils mingw-w64-ucrt-x86_64-binutils
 record_pkg tool.headers mingw-w64-ucrt-x86_64-headers
 record_pkg tool.pkgconf mingw-w64-ucrt-x86_64-pkgconf
+record_pkg tool.meson mingw-w64-ucrt-x86_64-meson
+record_pkg tool.ninja mingw-w64-ucrt-x86_64-ninja
 record_pkg tool.make make
 record_static crt libmingw32.a libmingwex.a libmoldname.a crt2.o dllcrt2.o
 record_static gcc libgcc.a libgcc_eh.a crtbegin.o crtend.o
