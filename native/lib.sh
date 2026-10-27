@@ -50,10 +50,10 @@ fetch_verify() {
 }
 
 # Pinned upstream tarballs, downloaded into the current directory.
-zbar_url() { echo "https://linuxtv.org/downloads/zbar/zbar-$ZBAR_VERSION.tar.bz2"; }
+zbar_url() { echo "https://linuxtv.org/downloads/zbar/zbar-$ZBAR_VERSION.tar.gz"; }
 iconv_url() { echo "https://ftp.gnu.org/pub/gnu/libiconv/libiconv-$ICONV_VERSION.tar.gz"; }
 
-fetch_zbar() { fetch_verify "$(zbar_url)" "$ZBAR_SHA256" zbar.tar.bz2; }
+fetch_zbar() { fetch_verify "$(zbar_url)" "$ZBAR_SHA256" zbar.tar.gz; }
 fetch_iconv() { fetch_verify "$(iconv_url)" "$ICONV_SHA256" libiconv.tar.gz; }
 
 # sha256_of FILE: print the SHA-256 of FILE.
