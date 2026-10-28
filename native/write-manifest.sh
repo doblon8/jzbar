@@ -90,9 +90,10 @@ trap 'rm -f "$tmp"' EXIT
 
   case "$PLATFORM" in
     linux-*)
+      matrix_arch=${PLATFORM#linux-}
       container=$(git -C "$ROOT" show "$commit:.github/workflows/$WORKFLOW" \
-                  | sed -n 's/^ *container: *//p')
-      [ -n "$container" ] || fail "no container line in $WORKFLOW at $commit"
+                  | sed -n "s/.*arch: $matrix_arch,.*container: *\"\([^\"]*\)\".*/\1/p")
+      [ -n "$container" ] || fail "no container for $matrix_arch in $WORKFLOW at $commit"
       echo "container.image=$container" ;;
   esac
 
