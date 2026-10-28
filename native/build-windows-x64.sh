@@ -68,9 +68,9 @@ meson compile -C build
 
 # Upstream hides internal symbols only on ELF (zbar/zbar.map, a --version-script used
 # only on Linux), and MinGW's ld ignores version scripts, so this DLL exports every
-# global symbol. Restrict the exports to the names in zbar.map, as 0.4.1 (libtool) did:
-# list the global symbols defined by the object files that zbar.map does not export,
-# and link again telling ld not to export them.
+# global symbol. Restrict the exports to the names in zbar.map, as the libtool build
+# of ZBar 0.23.93 did: list the global symbols defined by the object files that
+# zbar.map does not export, and link again telling ld not to export them.
 re="^($(awk '/global:/{f=1; next} /local:/{f=0} f' zbar/zbar.map | tr -d ' \t;' | grep . \
         | sed 's/\*/.*/g' | paste -sd'|' -))\$"
 exclude=$(for o in $(find build -name '*.o' -o -name '*.obj'); do nm -g --defined-only -P "$o"; done \
@@ -101,7 +101,7 @@ for sym in zbar_version zbar_image_scanner_create; do
   grep -q " $sym" <<<"$exports" || { echo "FAIL: missing export $sym"; exit 1; }
 done
 
-# internal symbols must not be exported (0.4.1 exported only zbar.map's names)
+# internal symbols must not be exported (the libtool build of ZBar 0.23.93 exported only zbar.map's names)
 if grep -q ' _zbar_decode_ean' <<<"$exports"; then
   echo "FAIL: internal symbols are exported"; exit 1
 fi
