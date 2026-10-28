@@ -59,7 +59,7 @@ git archive --format=tar "$commit" -- "${FILES[@]}" | tar -x -C "$stage"
   cd "$stage/sources"
   fetch_zbar
   fetch_iconv
-  mv zbar.tar.bz2 "zbar-$ZBAR_VERSION.tar.bz2"
+  mv zbar.tar.gz "zbar-$ZBAR_VERSION.tar.gz"
   mv libiconv.tar.gz "libiconv-$ICONV_VERSION.tar.gz"
 )
 

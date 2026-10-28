@@ -12,7 +12,7 @@ To add `jzbar` as a dependency using Maven, include the following in your `pom.x
 <dependency>
   <groupId>io.github.doblon8</groupId>
   <artifactId>jzbar</artifactId>
-  <version>0.4.1</version>
+  <version>0.5.0</version>
 </dependency>
 ```
 
@@ -62,7 +62,7 @@ void main() throws WriterException, ZBarException {
     }
 }
 
-// ZBar version: 0.23.93
+// ZBar version: 0.23.95
 // Scanned data: Hello, World!
 // Symbol type: QR-Code
 // Symbol quality: 1

@@ -50,7 +50,7 @@ files_of() {
   done | sort | paste -sd, - | sed 's/,/, /g'
 }
 
-expect source.zbar.version 0.23.93
+expect source.zbar.version 0.23.95
 load_sources SOURCE_BUNDLE_URL
 zbar_ver=$(one source.zbar.version)
 zbar_url=$(one source.zbar.url)

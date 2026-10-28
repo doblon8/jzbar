@@ -7,24 +7,24 @@ third-party sources below. Full license texts are in META-INF/licenses/.
 Source code
   The ZBar and libiconv source tarballs, the build scripts and the build
   manifests used to produce the native libraries in this JAR are available at:
-    https://github.com/doblon8/jzbar/releases/download/v0.4.1/jzbar-native-sources-0.4.1.tar.gz
+    https://github.com/doblon8/jzbar/releases/download/v0.5.0/jzbar-native-sources-0.5.0.tar.gz
   They will remain available there for at least three years after this
   version is released.
 
-ZBar 0.23.93
+ZBar 0.23.95
   License: LGPL-2.1-or-later (META-INF/licenses/zbar/)
   Contained in: linux/aarch64/libzbar.so, linux/x64/libzbar.so, osx/aarch64/libzbar.dylib, osx/x64/libzbar.dylib, windows/x64/zbar.dll
-  Source: https://linuxtv.org/downloads/zbar/zbar-0.23.93.tar.bz2
-          SHA-256 83be8f85fc7c288fd91f98d52fc55db7eedbddcf10a83d9221d7034636683fa0
+  Source: https://linuxtv.org/downloads/zbar/zbar-0.23.95.tar.gz
+          SHA-256 7b0907a3114503e0a8fbd1c6bfdb61592e6ded79f68716d7ca673ddeb6a87e99
   Parts under other terms: ISAAC (public domain); Xiph.Org portions of
   qrdec.c (BSD-style, META-INF/licenses/xiph-ogg/COPYING); Reed-Solomon
   code derived from Henry Minsky's (LGPL, used with permission).
 
-libiconv 1.17
+libiconv 1.19
   License: LGPL-2.1-or-later (META-INF/licenses/libiconv/)
   Contained in: windows/x64/libiconv-2.dll
-  Source: https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.17.tar.gz
-          SHA-256 8f74213b56238c85a50a5329f77e06198771e70dd9a739779f4c02f65d971313
+  Source: https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.19.tar.gz
+          SHA-256 88dd96a8c0464eca144fc791ae60cd31cd8ee78321e67397e25fc095c4a19aa6
 
 Windows runtime (parts statically linked into zbar.dll)
   mingw-w64 C runtime 14.0.0.r426.g4564ee4b5-1: ZPL-2.1, with parts under other terms

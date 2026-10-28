@@ -19,7 +19,7 @@ trap 'rm -rf "$work"' EXIT
 cd "$work"
 fetch_zbar
 fetch_iconv
-tar xjf zbar.tar.bz2
+tar xzf zbar.tar.gz
 tar xzf libiconv.tar.gz
 
 rm -rf "$LIC/zbar" "$LIC/libiconv"

@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 # Build libzbar.so (Linux, x64 or aarch64) from the pinned upstream source.
 #
-# Expected environment: Ubuntu 20.04 (glibc 2.31, GCC 9.4), which keeps the
-# binary loadable on older distros. The CI container is pinned in
-# .github/workflows/native-linux.yaml. Required packages:
-#   build-essential ca-certificates curl bzip2 pkg-config
+# Expected environment, as in the CI containers pinned in
+# .github/workflows/native-linux.yaml: Ubuntu 20.04 (glibc 2.31, GCC 9.4) for x64,
+# which keeps the binary loadable on older distros, and Ubuntu 24.04 (glibc 2.39,
+# GCC 13) for aarch64. Required packages:
+#   build-essential ca-certificates curl pkg-config python3-venv ninja-build
+# meson comes from native/meson-requirements.txt (hash-pinned), installed in a
+# temporary virtualenv: ZBar 0.23.94+ needs meson >= 0.61, newer than Ubuntu 20.04's.
 #
 # Usage: native/build-linux.sh [output-dir]    (default: <repo>/dist)
 set -euo pipefail
@@ -13,34 +16,45 @@ set -euo pipefail
 OUT=$(resolve_out "${1:-$ROOT/dist}")
 load_sources ZBAR_VERSION ZBAR_SHA256
 
+echo "== Install meson (hash-pinned)"
+python3 -m venv --clear /tmp/build-venv
+/tmp/build-venv/bin/python -m pip install --disable-pip-version-check --require-hashes \
+    --only-binary=:all: --no-deps -r "$ROOT/native/meson-requirements.txt"
+export PATH="/tmp/build-venv/bin:$PATH"
+
+GCC_PKG=gcc-$(gcc -dumpversion | cut -d. -f1)
+
 echo "== Toolchain versions"
 uname -m
 gcc --version | sed -n 1p
 ld --version | sed -n 1p
 ldd --version | sed -n 1p
-dpkg-query -W gcc-9 binutils libc6 libc6-dev make
+python3 --version
+meson --version
+ninja --version
+dpkg-query -W "$GCC_PKG" binutils libc6 libc6-dev make ninja-build python3
 
 echo "== Fetch and verify ZBar source"
 mkdir -p /tmp/src && cd /tmp/src
 fetch_zbar
-tar xjf zbar.tar.bz2
+tar xzf zbar.tar.gz
 
 echo "== Build ZBar (library only, no video)"
-# No libiconv here: glibc provides iconv itself.
+# No libiconv here: glibc provides iconv itself. /usr is a harmless prefix:
+# nothing is installed, the library is copied from the build directory.
 cd "/tmp/src/zbar-$ZBAR_VERSION"
-./configure --enable-shared --disable-static \
-            --disable-video --disable-doc --disable-nls \
-            --without-jpeg --without-imagemagick --without-graphicsmagick \
-            --without-python --without-gtk --without-gir \
-            --without-qt --without-qt6 --without-java \
-            --without-xshm --without-xv --without-dbus --without-npapi \
-            --without-x \
-            CFLAGS="-O2" LDFLAGS="-static-libgcc"
-make -C zbar -j"$(nproc)"
+meson setup build --prefix=/usr --buildtype=plain \
+    -Dc_args=-O2 -Dc_link_args=-static-libgcc \
+    -Dlibrary_type=shared -Dvideo=false -Ddoc=false -Dnls=disabled \
+    -Djpeg=disabled -Dimagemagick=disabled -Dgraphicsmagick=disabled \
+    -Dpython=no -Dgtk=no -Dgir=false -Dqt=false -Dqt6=false -Djava=disabled \
+    -Dxshm=disabled -Dxv=disabled -Ddbus=disabled -Dnpapi=disabled \
+    -Dx11=disabled -Dbuild_tests=false
+meson compile -C build
 
 echo "== Collect and verify"
 export LC_ALL=C
-cp -L "/tmp/src/zbar-$ZBAR_VERSION/zbar/.libs/libzbar.so" "$OUT/libzbar.so"
+cp -L "/tmp/src/zbar-$ZBAR_VERSION/build/zbar/libzbar.so" "$OUT/libzbar.so"
 strip --strip-unneeded "$OUT/libzbar.so"
 cd "$OUT"
 
@@ -73,19 +87,26 @@ echo "== Record toolchain"
 : > "$OUT/toolchain.txt"
 dpkg-query -W | sort > "$OUT/packages.txt"
 
+
 record_deb() { # PREFIX PACKAGE
+  local version
+  version=$(dpkg-query -W -f='${Version}' "$2") \
+    || { echo "FAIL: package $2 is not installed" >&2; exit 1; }
   kv "$1.package" "$2"
-  kv "$1.version" "$(dpkg-query -W -f='${Version}' "$2")"
+  kv "$1.version" "$version"
 }
 
 kv machine "$(uname -m)"
 [ -z "${ImageVersion:-}" ] || kv runner.image "${ImageOS:-unknown} $ImageVersion"
 kv os.name "$(. /etc/os-release && echo "$PRETTY_NAME")"
-record_deb tool.gcc gcc-9
+record_deb tool.gcc "$GCC_PKG"
 record_deb tool.binutils binutils
 record_deb tool.libc6 libc6
 record_deb tool.libc6-dev libc6-dev
 record_deb tool.make make
+record_deb tool.ninja ninja-build
+record_deb tool.python3 python3
+kv tool.meson.version "$(meson --version)"
 kv out.glibc_max "$glibc_max"
 
 # show the hash of the built library for verification

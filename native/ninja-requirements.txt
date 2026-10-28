@@ -1,0 +1,5 @@
+# ninja for macOS builds (meson needs it)
+# Hash of ninja-1.13.2-py3-none-macosx_10_9_universal2.whl from https://pypi.org/pypi/ninja/1.13.2/json
+ninja==1.13.2 \
+    --hash=sha256:fd82e26c0706ad4ab88e5fdd26f3fab0a987a90f810160f6c322e752c6af298b
+

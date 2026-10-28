@@ -97,14 +97,16 @@ jobs:
 
     - name: Rebuild libzbar.so from the bundle
       run: |
+        image=$(sed -n 's/^container.image=//p' "native/manifest/linux-${{ matrix.arch }}.manifest")
+        [ -n "$image" ] || { echo "no container.image in the manifest"; exit 1; }
         docker run --rm \
           -v "$RUNNER_TEMP/jzbar-native-sources-ci:/src" -w /src \
           -e NATIVE_SOURCES_DIR=/src/sources -e DEBIAN_FRONTEND=noninteractive \
-          ubuntu:20.04@sha256:8feb4d8ca5354def3d8fce243717141ce31e2c428701f6682bd2fafe15388214 \
+          "$image" \
           bash -ec '
             apt-get update
             apt-get install -y --no-install-recommends \
-              build-essential ca-certificates curl bzip2 pkg-config
+              build-essential ca-certificates curl pkg-config python3-venv ninja-build
             native/build-linux.sh /src/out'
 
     - name: Compare with the committed binary
@@ -202,6 +204,8 @@ jobs:
         install: >-
           mingw-w64-ucrt-x86_64-gcc
           mingw-w64-ucrt-x86_64-pkgconf
+          mingw-w64-ucrt-x86_64-meson
+          mingw-w64-ucrt-x86_64-ninja
           make
           curl
 
