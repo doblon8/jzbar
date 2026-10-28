@@ -62,7 +62,7 @@ void main() throws WriterException, ZBarException {
     }
 }
 
-// ZBar version: 0.23.93
+// ZBar version: 0.23.95
 // Scanned data: Hello, World!
 // Symbol type: QR-Code
 // Symbol quality: 1

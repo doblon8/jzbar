@@ -8,6 +8,6 @@ class ZBarTest {
 
     @Test
     void version() {
-        assertEquals("0.23.93", ZBar.version(), "Bundled ZBar version");
+        assertEquals("0.23.95", ZBar.version(), "Bundled ZBar version");
     }
 }
