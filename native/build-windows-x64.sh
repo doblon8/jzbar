@@ -54,16 +54,31 @@ cp /ucrt64/lib/libwinpthread.a /tmp/pthread-static/libwinpthread.a
 cp /ucrt64/lib/libwinpthread.a /tmp/pthread-static/libpthread.a
 PREFIX_WIN=$(cygpath -m "$PREFIX")
 PTHREAD_WIN=$(cygpath -m /tmp/pthread-static)
+LINK_ARGS="-L$PTHREAD_WIN -L$PREFIX_WIN/lib -static-libgcc -Wl,--no-insert-timestamp -Wl,--image-base=0x1a0000000"
 cd "/tmp/src/zbar-$ZBAR_VERSION"
 MSYS2_ARG_CONV_EXCL='*' meson setup build --prefix=C:/zbar --buildtype=plain \
     -Dc_args="-O2 -D__USE_MINGW_ANSI_STDIO=1 -I$PREFIX_WIN/include" \
-    -Dc_link_args="-L$PTHREAD_WIN -L$PREFIX_WIN/lib -static-libgcc -Wl,--no-insert-timestamp -Wl,--image-base=0x1a0000000" \
+    -Dc_link_args="$LINK_ARGS" \
     -Dlibrary_type=shared -Dvideo=false -Ddoc=false -Dnls=disabled \
     -Djpeg=disabled -Dimagemagick=disabled -Dgraphicsmagick=disabled \
     -Dpython=no -Dgtk=no -Dgir=false -Dqt=false -Dqt6=false -Djava=disabled \
     -Dxshm=disabled -Dxv=disabled -Ddbus=disabled -Dnpapi=disabled \
     -Dx11=disabled -Dbuild_tests=false
-grep -n -i 'iconv\|clock_gettime' build/meson-logs/meson-log.txt | head -30 || true
+meson compile -C build
+
+# Upstream hides internal symbols only on ELF (zbar/zbar.map, a --version-script used
+# only on Linux), and MinGW's ld ignores version scripts, so this DLL exports every
+# global symbol. Restrict the exports to the names in zbar.map, as 0.4.1 (libtool) did:
+# list the global symbols defined by the object files that zbar.map does not export,
+# and link again telling ld not to export them.
+re="^($(awk '/global:/{f=1; next} /local:/{f=0} f' zbar/zbar.map | tr -d ' \t;' | grep . \
+        | sed 's/\*/.*/g' | paste -sd'|' -))\$"
+exclude=$(for o in $(find build -name '*.o' -o -name '*.obj'); do nm -g --defined-only -P "$o"; done \
+          | awk -v re="$re" '$1 !~ re { print $1 }' | sort -u | paste -sd: -)
+[ -n "$exclude" ] || { echo "FAIL: no internal symbols found"; exit 1; }
+echo "$(printf '%s' "$exclude" | tr ':' '\n' | wc -l) symbols excluded from the exports"
+MSYS2_ARG_CONV_EXCL='*' meson configure build \
+    -Dc_link_args="$LINK_ARGS -Wl,--exclude-symbols,$exclude"
 meson compile -C build
 
 echo "== Collect and verify"
@@ -85,6 +100,11 @@ exports=$(objdump -p zbar.dll)
 for sym in zbar_version zbar_image_scanner_create; do
   grep -q " $sym" <<<"$exports" || { echo "FAIL: missing export $sym"; exit 1; }
 done
+
+# internal symbols must not be exported (0.4.1 exported only zbar.map's names)
+if grep -q ' _zbar_decode_ean' <<<"$exports"; then
+  echo "FAIL: internal symbols are exported"; exit 1
+fi
 
 # no build paths or usernames
 if strings -a -f *.dll | grep -iE '\.pdb|/tmp/|/home/|/d/a/|runner|D:\\|Users'; then
