@@ -104,7 +104,7 @@ jobs:
           bash -ec '
             apt-get update
             apt-get install -y --no-install-recommends \
-              build-essential ca-certificates curl pkg-config python3-pip ninja-build
+              build-essential ca-certificates curl pkg-config python3-venv ninja-build
             native/build-linux.sh /src/out'
 
     - name: Compare with the committed binary

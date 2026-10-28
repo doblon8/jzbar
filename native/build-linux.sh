@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # Build libzbar.so (Linux, x64 or aarch64) from the pinned upstream source.
 #
-# Expected environment: Ubuntu 20.04 (glibc 2.31, GCC 9.4), which keeps the
-# binary loadable on older distros. The CI container is pinned in
-# .github/workflows/native-linux.yaml. Required packages:
-#   build-essential ca-certificates curl pkg-config python3-pip ninja-build
-# meson comes from native/meson-requirements.txt (hash-pinned): ZBar 0.23.94+
-# needs meson >= 0.61 and the distro package is older.
+# Expected environment, as in the CI containers pinned in
+# .github/workflows/native-linux.yaml: Ubuntu 20.04 (glibc 2.31, GCC 9.4) for x64,
+# which keeps the binary loadable on older distros, and Ubuntu 24.04 (glibc 2.39,
+# GCC 13) for aarch64. Required packages:
+#   build-essential ca-certificates curl pkg-config python3-venv ninja-build
+# meson comes from native/meson-requirements.txt (hash-pinned), installed in a
+# temporary virtualenv: ZBar 0.23.94+ needs meson >= 0.61, newer than Ubuntu 20.04's.
 #
 # Usage: native/build-linux.sh [output-dir]    (default: <repo>/dist)
 set -euo pipefail
@@ -16,8 +17,12 @@ OUT=$(resolve_out "${1:-$ROOT/dist}")
 load_sources ZBAR_VERSION ZBAR_SHA256
 
 echo "== Install meson (hash-pinned)"
-python3 -m pip install --disable-pip-version-check --require-hashes \
+python3 -m venv --clear /tmp/build-venv
+/tmp/build-venv/bin/python -m pip install --disable-pip-version-check --require-hashes \
     --only-binary=:all: --no-deps -r "$ROOT/native/meson-requirements.txt"
+export PATH="/tmp/build-venv/bin:$PATH"
+
+GCC_PKG=gcc-$(gcc -dumpversion | cut -d. -f1)
 
 echo "== Toolchain versions"
 uname -m
@@ -27,7 +32,7 @@ ldd --version | sed -n 1p
 python3 --version
 meson --version
 ninja --version
-dpkg-query -W gcc-9 binutils libc6 libc6-dev make ninja-build python3
+dpkg-query -W "$GCC_PKG" binutils libc6 libc6-dev make ninja-build python3
 
 echo "== Fetch and verify ZBar source"
 mkdir -p /tmp/src && cd /tmp/src
@@ -82,15 +87,19 @@ echo "== Record toolchain"
 : > "$OUT/toolchain.txt"
 dpkg-query -W | sort > "$OUT/packages.txt"
 
+
 record_deb() { # PREFIX PACKAGE
+  local version
+  version=$(dpkg-query -W -f='${Version}' "$2") \
+    || { echo "FAIL: package $2 is not installed" >&2; exit 1; }
   kv "$1.package" "$2"
-  kv "$1.version" "$(dpkg-query -W -f='${Version}' "$2")"
+  kv "$1.version" "$version"
 }
 
 kv machine "$(uname -m)"
 [ -z "${ImageVersion:-}" ] || kv runner.image "${ImageOS:-unknown} $ImageVersion"
 kv os.name "$(. /etc/os-release && echo "$PRETTY_NAME")"
-record_deb tool.gcc gcc-9
+record_deb tool.gcc "$GCC_PKG"
 record_deb tool.binutils binutils
 record_deb tool.libc6 libc6
 record_deb tool.libc6-dev libc6-dev

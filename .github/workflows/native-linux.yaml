@@ -10,15 +10,17 @@ jobs:
   build:
     name: build (${{ matrix.arch }})
     runs-on: ${{ matrix.runner }}
-    # Ubuntu 20.04 (glibc 2.31, GCC 9.4) keeps the binary loadable on older distros.
-    # Pinned to the multi-arch index digest (image built 2025-04-04).
-    container: ubuntu:20.04@sha256:8feb4d8ca5354def3d8fce243717141ce31e2c428701f6682bd2fafe15388214
+    # x64: Ubuntu 20.04 (glibc 2.31, GCC 9.4) keeps the binary loadable on older distros.
+    # aarch64: Ubuntu 24.04 (glibc 2.39, GCC 13), the platform Sparrow Wallet targets.
+    # Both are pinned to the multi-arch index digest (20.04 image built 2025-04-04,
+    # 24.04 image built 2026-10-25).
+    container: ${{ matrix.container }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - { arch: x64, runner: ubuntu-24.04 }
-          - { arch: aarch64, runner: ubuntu-24.04-arm }
+          - { arch: x64, runner: ubuntu-24.04, container: "ubuntu:20.04@sha256:8feb4d8ca5354def3d8fce243717141ce31e2c428701f6682bd2fafe15388214" }
+          - { arch: aarch64, runner: ubuntu-24.04-arm, container: "ubuntu:24.04@sha256:24737cef17f4e22b1977df7d9a05e77c4e28b7da5b8911f8d8ccda136bf3573c" }
     defaults:
       run:
         shell: bash
@@ -30,7 +32,7 @@ jobs:
         run: |
           apt-get update
           apt-get install -y --no-install-recommends \
-            build-essential ca-certificates curl pkg-config python3-pip ninja-build git
+            build-essential ca-certificates curl pkg-config python3-venv ninja-build git
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
